@@ -1,0 +1,38 @@
+# Maven (backend)
+target/
+*.class
+
+# Внутренняя документация — ведётся вне репозитория
+docs/
+
+# Загруженные вложения (argent.attachment, локальная файловая система) — реальные данные, не код
+storage-data/
+
+# Node / Angular (frontend)
+node_modules/
+dist/
+.angular/cache/
+npm-debug.log
+yarn-error.log
+
+# IDEs and editors
+.idea/
+.project
+.classpath
+.settings/
+*.launch
+
+# VS Code (keep shared config, ignore local state)
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/mcp.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

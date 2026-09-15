@@ -1,0 +1,21 @@
+{
+  "name": "argent-dev",
+  "private": true,
+  "description": "Скрипты подъёма всего стека (Docker + backend + frontend) для разработки. Не путать с frontend/package.json — это отдельный, независимый набор зависимостей только для оркестрации.",
+  "scripts": {
+    "db:up": "docker compose up -d && wait-on tcp:5432",
+    "backend:build": "cd backend && mvn -q clean install -DskipTests",
+    "backend:start": "java -Djava.net.preferIPv4Stack=true -jar backend/askshoes-backend/target/askshoes-backend-1.0-SNAPSHOT.jar",
+    "backend:wait": "wait-on tcp:8080",
+    "frontend:install": "npm install --prefix frontend",
+    "frontend:build-libs": "npm run build-libs --prefix frontend",
+    "frontend:generate-api": "npm run generate-api --prefix frontend",
+    "frontend:serve": "npm start --prefix frontend",
+    "setup": "npm run db:up && npm run backend:build && npm run frontend:install",
+    "dev": "npm run db:up && npm run backend:build && concurrently -k -n backend,frontend \"npm run backend:start\" \"npm run backend:wait && npm run frontend:generate-api && npm run frontend:build-libs && npm run frontend:serve\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "wait-on": "^9.0.1"
+  }
+}

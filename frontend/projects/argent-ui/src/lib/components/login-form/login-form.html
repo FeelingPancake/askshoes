@@ -1,0 +1,32 @@
+<form [formGroup]="form" (ngSubmit)="submit()">
+  <div class="login-form">
+    <div class="login-form__field">
+      <label for="username">Логин</label>
+      <input
+        pInputText
+        id="username"
+        type="text"
+        formControlName="username"
+        autocomplete="username"
+        [fluid]="true"
+      />
+    </div>
+
+    <div class="login-form__field">
+      <label for="password">Пароль</label>
+      <p-password
+        inputId="password"
+        formControlName="password"
+        autocomplete="current-password"
+        [feedback]="false"
+        [fluid]="true"
+      />
+    </div>
+
+    @if (errorMessage()) {
+      <p-message severity="error">{{ errorMessage() }}</p-message>
+    }
+
+    <p-button type="submit" label="Войти" [loading]="isSubmitting()" [fluid]="true" />
+  </div>
+</form>

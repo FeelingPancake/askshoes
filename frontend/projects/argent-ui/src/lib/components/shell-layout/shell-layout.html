@@ -1,0 +1,83 @@
+<div class="shell">
+  <header class="shell__header">
+    <div class="shell__brand">
+      <ng-content select="[argent-shell-brand]" />
+    </div>
+
+    @if (!isMobile()) {
+      <nav class="shell__tabs" aria-label="Разделы">
+        <p-tabs [value]="activeTop()?.route" (valueChange)="navigate($event)" scrollable>
+          <p-tablist>
+            @for (item of nav(); track item.route) {
+              <p-tab [value]="item.route">{{ item.label }}</p-tab>
+            }
+          </p-tablist>
+        </p-tabs>
+      </nav>
+    } @else {
+      <p-button
+        class="shell__burger"
+        icon="pi pi-bars"
+        [text]="true"
+        severity="secondary"
+        ariaLabel="Меню"
+        (onClick)="drawerOpen.set(true)"
+      />
+    }
+
+    <div class="shell__user">
+      <ng-content select="[argent-shell-user]" />
+    </div>
+  </header>
+
+  <p-drawer [(visible)]="drawerOpen" header="Меню">
+    <ul class="shell__drawer-list">
+      @for (item of nav(); track item.route) {
+        <li>
+          <a
+            class="shell__drawer-link"
+            [routerLink]="item.route"
+            [class.shell__drawer-link--active]="isActive(item.route)"
+            [attr.aria-current]="isActive(item.route) ? 'page' : null"
+            (click)="drawerOpen.set(false)"
+          >
+            {{ item.label }}
+          </a>
+          @if (item.children?.length) {
+            <ul class="shell__drawer-sublist">
+              @for (child of item.children; track child.route) {
+                <li>
+                  <a
+                    class="shell__drawer-link"
+                    [routerLink]="child.route"
+                    [class.shell__drawer-link--active]="isActive(child.route)"
+                    [attr.aria-current]="isActive(child.route) ? 'page' : null"
+                    (click)="drawerOpen.set(false)"
+                  >
+                    {{ child.label }}
+                  </a>
+                </li>
+              }
+            </ul>
+          }
+        </li>
+      }
+    </ul>
+  </p-drawer>
+
+  @if (activeTop()?.children?.length) {
+    <nav class="shell__sub" aria-label="Подразделы">
+      <p-tabs [value]="activeSub()?.route" (valueChange)="navigate($event)" scrollable>
+        <p-tablist>
+          @for (item of activeTop()?.children; track item.route) {
+            <p-tab [value]="item.route">{{ item.label }}</p-tab>
+          }
+        </p-tablist>
+      </p-tabs>
+    </nav>
+  }
+
+  <main class="shell__main">
+    <ng-content />
+  </main>
+</div>

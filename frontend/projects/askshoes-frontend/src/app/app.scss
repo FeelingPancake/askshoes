@@ -1,0 +1,58 @@
+// Словесный знак AskShoes: «Shoes» — фирменным акцентом.
+.wordmark {
+  font-family: 'Archivo Narrow', var(--argent-font-sans);
+  font-weight: 700;
+  font-size: 1.375rem;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: var(--p-text-color);
+  white-space: nowrap;
+}
+
+.wordmark__accent {
+  color: var(--p-primary-color);
+}
+
+// ── Экран входа ─────────────────────────────────────────────
+// Плакат лежит на «чернилах» (surface.900): текст — светлыми токенами,
+// а не --p-text-*, которые рассчитаны на светлый фон.
+
+// Крупный знак на плакате. px, а не rem: размер знака не должен зависеть от
+// базового 14px интерфейса.
+.wordmark--poster {
+  font-size: 56px;
+  line-height: 0.9;
+  color: var(--p-surface-50);
+}
+
+.poster-label {
+  font-size: 12px;
+  color: var(--p-surface-400);
+}
+
+.poster-caption {
+  max-width: 18rem;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--p-surface-300);
+}
+
+.login-heading {
+  margin-bottom: 1.5rem;
+
+  h1,
+  p {
+    margin: 0;
+  }
+
+  .argent-meta {
+    margin-top: 0.5rem;
+  }
+}
+
+@media (max-width: 767px) {
+  .wordmark--poster {
+    font-size: 36px;
+  }
+}

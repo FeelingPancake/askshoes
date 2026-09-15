@@ -1,0 +1,35 @@
+@if (tokenStore.isAuthenticated()) {
+  <argent-shell-layout [nav]="nav">
+    <span argent-shell-brand class="wordmark">Ask<span class="wordmark__accent">Shoes</span></span>
+
+    <div argent-shell-user>
+      <p-button
+        icon="pi pi-user"
+        [text]="true"
+        severity="secondary"
+        ariaLabel="Меню пользователя"
+        (onClick)="userMenuRef.toggle($event)"
+      />
+      <p-menu #userMenuRef [model]="userMenu" [popup]="true" appendTo="body" />
+    </div>
+
+    <router-outlet />
+  </argent-shell-layout>
+} @else {
+  <argent-auth-layout>
+    <!-- Три отдельных элемента-слота: каждый — прямой ребёнок плаката, их разносит space-between. -->
+    <span argent-auth-aside class="poster-label argent-mono">01 / Вход</span>
+    <span argent-auth-aside class="wordmark wordmark--poster">
+      Ask<br /><span class="wordmark__accent">Shoes</span>
+    </span>
+    <p argent-auth-aside class="poster-caption">
+      {{ description }}
+    </p>
+
+    <header class="login-heading">
+      <h1 class="argent-page-title">Вход</h1>
+      <p class="argent-meta">Учётная запись сотрудника</p>
+    </header>
+    <argent-login-form (loggedIn)="onLoggedIn()" />
+  </argent-auth-layout>
+}

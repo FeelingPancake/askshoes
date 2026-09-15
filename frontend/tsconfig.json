@@ -1,0 +1,49 @@
+/* To learn more about Typescript configuration file: https://www.typescriptlang.org/docs/handbook/tsconfig-json.html. */
+/* To learn more about Angular compiler options: https://angular.dev/reference/configs/angular-compiler-options. */
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "target": "ES2022",
+    "experimentalDecorators": true,
+    "module": "preserve",
+    "paths": {
+      "argent-api": ["./dist/argent-api"],
+      "argent-ui": ["./dist/argent-ui"]
+    },
+    "strict": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "importHelpers": true,
+    "isolatedModules": true,
+    "skipLibCheck": true
+  },
+  "angularCompilerOptions": {
+    "enableI18nLegacyMessageIdFormat": false,
+    "strictInjectionParameters": true,
+    "strictInputAccessModifiers": true,
+    "strictTemplates": true
+  },
+  "references": [
+    {
+      "path": "./projects/argent-ui/tsconfig.lib.json"
+    },
+    {
+      "path": "./projects/argent-ui/tsconfig.spec.json"
+    },
+    {
+      "path": "./projects/askshoes-frontend/tsconfig.app.json"
+    },
+    {
+      "path": "./projects/askshoes-frontend/tsconfig.spec.json"
+    },
+    {
+      "path": "./projects/argent-api/tsconfig.lib.json"
+    },
+    {
+      "path": "./projects/argent-api/tsconfig.spec.json"
+    }
+  ],
+  "files": []
+}
