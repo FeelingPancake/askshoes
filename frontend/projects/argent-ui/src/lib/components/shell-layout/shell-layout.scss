@@ -1,0 +1,80 @@
+.shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+// Шапка: бренд | вкладки разделов | пользователь, линия снизу — чернилами.
+.shell__header {
+  display: flex;
+  align-items: stretch;
+  flex: none;
+  border-bottom: 1px solid var(--p-surface-900);
+}
+
+.shell__brand,
+.shell__user {
+  display: flex;
+  align-items: center;
+  flex: none;
+  padding: 0 1.25rem;
+}
+
+.shell__brand {
+  border-right: 1px solid var(--p-surface-200);
+}
+
+.shell__user {
+  // На мобильном первой строки вкладок нет — прижимаем блок пользователя
+  // вправо; на широком экране вкладки и так занимают всё место (`flex: 1`).
+  margin-left: auto;
+  border-left: 1px solid var(--p-surface-200);
+}
+
+.shell__tabs {
+  flex: 1;
+  min-width: 0;
+}
+
+// Бургер рендерится только в мобильном режиме (`isMobile()` в шаблоне).
+.shell__burger {
+  display: flex;
+  flex: none;
+}
+
+.shell__drawer-list,
+.shell__drawer-sublist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.shell__drawer-sublist {
+  padding-left: 1rem;
+}
+
+.shell__drawer-link {
+  display: block;
+  border-left: 3px solid transparent;
+  color: inherit;
+  text-decoration: none;
+  padding: 0.6rem 0.75rem;
+}
+
+.shell__drawer-link--active {
+  border-left-color: var(--p-primary-color);
+  font-weight: 600;
+}
+
+// Вторая строка — подразделы, линия снизу слабая.
+.shell__sub {
+  flex: none;
+  border-bottom: 1px solid var(--p-surface-200);
+}
+
+.shell__main {
+  flex: 1;
+  min-width: 0;
+  overflow: auto;
+  padding: 1.5rem 1.25rem;
+}

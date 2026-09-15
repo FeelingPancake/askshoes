@@ -1,0 +1,50 @@
+.auth-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 100vh;
+}
+
+.auth-layout__aside {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 2rem;
+  padding: 2rem;
+  background-color: var(--p-surface-900);
+  // Сетка из 4 колонок: 1px-линия в начале каждого тайла шириной 25%.
+  background-image: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--p-surface-50) 8%, transparent) 1px,
+    transparent 1px
+  );
+  background-size: 25% 100%;
+  color: var(--p-surface-50);
+}
+
+.auth-layout__main {
+  display: grid;
+  place-items: center;
+  padding: 2rem;
+}
+
+.auth-layout__content {
+  width: 100%;
+  max-width: 22rem;
+}
+
+@media (max-width: 767px) {
+  .auth-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+
+  .auth-layout__aside {
+    gap: 1rem;
+    padding: 1.25rem;
+  }
+
+  .auth-layout__main {
+    place-items: start center;
+    padding: 2rem 1.25rem;
+  }
+}

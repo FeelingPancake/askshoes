@@ -1,0 +1,165 @@
+{
+  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "version": 1,
+  "cli": {
+    "packageManager": "npm",
+    "analytics": false
+  },
+  "newProjectRoot": "projects",
+  "projects": {
+    "argent-ui": {
+      "projectType": "library",
+      "root": "projects/argent-ui",
+      "sourceRoot": "projects/argent-ui/src",
+      "prefix": "argent",
+      "schematics": {
+        "@schematics/angular:component": {
+          "style": "scss"
+        }
+      },
+      "architect": {
+        "build": {
+          "builder": "@angular/build:ng-packagr",
+          "configurations": {
+            "production": {
+              "tsConfig": "projects/argent-ui/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "projects/argent-ui/tsconfig.lib.json"
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "test": {
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "tsConfig": "projects/argent-ui/tsconfig.spec.json"
+          }
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": ["projects/argent-ui/**/*.ts", "projects/argent-ui/**/*.html"],
+            "eslintConfig": "projects/argent-ui/eslint.config.js"
+          }
+        }
+      }
+    },
+    "askshoes-frontend": {
+      "projectType": "application",
+      "schematics": {
+        "@schematics/angular:component": {
+          "style": "scss"
+        }
+      },
+      "root": "projects/askshoes-frontend",
+      "sourceRoot": "projects/askshoes-frontend/src",
+      "prefix": "app",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "browser": "projects/askshoes-frontend/src/main.ts",
+            "tsConfig": "projects/askshoes-frontend/tsconfig.app.json",
+            "inlineStyleLanguage": "scss",
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "projects/askshoes-frontend/public"
+              }
+            ],
+            "styles": [
+              "@fontsource-variable/ibm-plex-sans/index.css",
+              "@fontsource/ibm-plex-mono/400.css",
+              "@fontsource/ibm-plex-mono/500.css",
+              "@fontsource/archivo-narrow/700.css",
+              "projects/askshoes-frontend/src/styles.scss"
+            ],
+            "stylePreprocessorOptions": {
+              "includePaths": ["dist"]
+            }
+          },
+          "configurations": {
+            "production": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kB",
+                  "maximumError": "1MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "4kB",
+                  "maximumError": "8kB"
+                }
+              ],
+              "outputHashing": "all"
+            },
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular/build:dev-server",
+          "options": {
+            "prebundle": {
+              "exclude": ["argent-ui", "argent-api"]
+            }
+          },
+          "configurations": {
+            "production": {
+              "buildTarget": "askshoes-frontend:build:production"
+            },
+            "development": {
+              "buildTarget": "askshoes-frontend:build:development"
+            }
+          },
+          "defaultConfiguration": "development"
+        },
+        "test": {
+          "builder": "@angular/build:unit-test"
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": [
+              "projects/askshoes-frontend/**/*.ts",
+              "projects/askshoes-frontend/**/*.html"
+            ],
+            "eslintConfig": "projects/askshoes-frontend/eslint.config.js"
+          }
+        }
+      }
+    },
+    "argent-api": {
+      "projectType": "library",
+      "root": "projects/argent-api",
+      "sourceRoot": "projects/argent-api/src",
+      "prefix": "argent",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:ng-packagr",
+          "configurations": {
+            "production": {
+              "tsConfig": "projects/argent-api/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "projects/argent-api/tsconfig.lib.json"
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "test": {
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "tsConfig": "projects/argent-api/tsconfig.spec.json"
+          }
+        }
+      }
+    }
+  }
+}

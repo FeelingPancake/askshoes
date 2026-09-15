@@ -1,0 +1,89 @@
+<p-toast />
+<p-confirmDialog />
+
+<p-toolbar>
+  <ng-template #start>
+    <h2>{{ title() || code() }}</h2>
+  </ng-template>
+  <ng-template #end>
+    <p-button label="Добавить" icon="pi pi-plus" (onClick)="openCreate()" />
+  </ng-template>
+</p-toolbar>
+
+<p-table
+  [value]="items()"
+  [lazy]="true"
+  [paginator]="true"
+  [rows]="10"
+  [totalRecords]="totalRecords()"
+  [loading]="loading()"
+  (onLazyLoad)="onLazyLoad($event)"
+>
+  <ng-template #header>
+    <tr>
+      <th pSortableColumn="code">Код <p-sortIcon field="code" /></th>
+      <th pSortableColumn="name">Название <p-sortIcon field="name" /></th>
+      <th pSortableColumn="active">Активен <p-sortIcon field="active" /></th>
+      <th pSortableColumn="sortOrder">Порядок <p-sortIcon field="sortOrder" /></th>
+      <th></th>
+    </tr>
+  </ng-template>
+  <ng-template #body let-item>
+    <tr>
+      <td>{{ item.code }}</td>
+      <td>{{ item.name }}</td>
+      <td>
+        <p-tag
+          [severity]="item.active ? 'success' : 'danger'"
+          [value]="item.active ? 'да' : 'нет'"
+        />
+      </td>
+      <td>{{ item.sortOrder }}</td>
+      <td>
+        <p-button icon="pi pi-pencil" [text]="true" (onClick)="openEdit(item)" />
+        <p-button
+          icon="pi pi-trash"
+          severity="danger"
+          [text]="true"
+          (onClick)="confirmDelete(item)"
+        />
+      </td>
+    </tr>
+  </ng-template>
+  <ng-template #emptymessage>
+    <tr>
+      <td colspan="5">Пусто</td>
+    </tr>
+  </ng-template>
+</p-table>
+
+<p-dialog
+  [(visible)]="dialogVisible"
+  [modal]="true"
+  header="Позиция справочника"
+  [style]="{ width: '30rem' }"
+>
+  <form [formGroup]="form" (ngSubmit)="save()">
+    <div>
+      <label for="ref-code">Код</label>
+      <input id="ref-code" type="text" pInputText formControlName="code" />
+    </div>
+
+    <div>
+      <label for="ref-name">Название</label>
+      <input id="ref-name" type="text" pInputText formControlName="name" />
+    </div>
+
+    <div>
+      <label for="ref-active">Активен</label>
+      <p-toggleswitch id="ref-active" formControlName="active" />
+    </div>
+
+    <div>
+      <label for="ref-sort-order">Порядок сортировки</label>
+      <p-inputnumber id="ref-sort-order" formControlName="sortOrder" />
+    </div>
+
+    <p-button type="submit" label="Сохранить" />
+  </form>
+</p-dialog>
