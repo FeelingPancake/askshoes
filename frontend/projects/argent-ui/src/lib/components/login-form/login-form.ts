@@ -1,10 +1,13 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, output, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
 import { Password } from 'primeng/password';
+import { applyServerErrors, problemMessage } from '../../errors/problem-detail';
 import { AuthApiService } from '../../services/auth-api';
+import { FieldError } from '../field-error/field-error';
 
 /**
  * Форма логина (логин + пароль). Сама делает HTTP-запрос через {@link AuthApiService} и
@@ -13,7 +16,7 @@ import { AuthApiService } from '../../services/auth-api';
  */
 @Component({
   selector: 'argent-login-form',
-  imports: [ReactiveFormsModule, InputText, Password, Button, Message],
+  imports: [ReactiveFormsModule, InputText, Password, Button, Message, FieldError],
   templateUrl: './login-form.html',
   styleUrl: './login-form.scss',
 })
@@ -47,9 +50,16 @@ export class LoginForm {
         this.isSubmitting.set(false);
         this.loggedIn.emit();
       },
-      error: () => {
+      error: (error: unknown) => {
         this.isSubmitting.set(false);
-        this.errorMessage.set('Неверный логин или пароль');
+        if (applyServerErrors(this.form, error)) {
+          return;
+        }
+        this.errorMessage.set(
+          error instanceof HttpErrorResponse && error.status === 401
+            ? 'Неверный логин или пароль'
+            : problemMessage(error, 'Не удалось войти'),
+        );
       },
     });
   }

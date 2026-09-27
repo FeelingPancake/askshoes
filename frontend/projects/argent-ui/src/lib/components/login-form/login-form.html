@@ -10,6 +10,7 @@
         autocomplete="username"
         [fluid]="true"
       />
+      <argent-field-error [control]="form.controls.username" />
     </div>
 
     <div class="login-form__field">
@@ -21,6 +22,7 @@
         [feedback]="false"
         [fluid]="true"
       />
+      <argent-field-error [control]="form.controls.password" />
     </div>
 
     @if (errorMessage()) {

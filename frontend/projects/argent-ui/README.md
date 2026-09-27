@@ -13,6 +13,12 @@
 - **`AuthTokenStore`** — signal-based хранилище JWT-токена, персистентность в `localStorage`.
 - **`authInterceptor`** — HTTP-interceptor, добавляет `Authorization: Bearer <token>` к
   исходящим запросам. Нужно зарегистрировать явно (см. ниже).
+- **`errorInterceptor`** — на 401 (кроме самого логина) стирает токен, приложение уходит на экран
+  входа. Ошибку пробрасывает дальше. Регистрируется явно, после `authInterceptor`.
+- **`problemMessage(error, fallback)`** / **`applyServerErrors(form, error)`** — разбор
+  `ProblemDetail` от backend: текст для toast и раскладка `errors` (400 от `@Valid`) по полям формы.
+- **`FieldError`** (`<argent-field-error [control]="...">`) — сообщение под полем: клиентские
+  `Validators.*` и серверная ошибка `server`.
 - **`ARGENT_API_BASE_URL`** — `InjectionToken<string>` для адреса backend. Обязателен к
   регистрации приложением-потребителем.
 - **`AuthApiService`** — HTTP-клиент к `POST /api/auth/login`.
@@ -154,14 +160,27 @@ dev-сервер один раз кэширует `argent-ui` и дальше п
 В `app.config.ts` приложения:
 
 ```typescript
-import { ARGENT_API_BASE_URL, authInterceptor } from 'argent-ui';
+import { ARGENT_API_BASE_URL, authInterceptor, errorInterceptor } from 'argent-ui';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 
 providers: [
-  provideHttpClient(withInterceptors([authInterceptor])),
+  provideHttpClient(withInterceptors([authInterceptor, errorInterceptor])),
   { provide: ARGENT_API_BASE_URL, useValue: 'http://localhost:8080' },
 ];
 ```
+
+## Secondary entry point `argent-ui/crud`
+
+Тяжёлые экраны на PrimeNG Table/Dialog (`RefCrudPage`) лежат в `projects/argent-ui/crud/` и
+собираются отдельным модулем. Импортировать их только лениво, иначе они снова попадут в
+стартовый бандл:
+
+```typescript
+{ path: 'settings/refs', loadComponent: async () => import('argent-ui/crud').then((m) => m.RefCrudPage) }
+```
+
+Код внутри `crud/` импортирует общее из `'argent-ui'`, не относительными путями. Новый экран:
+папка в `crud/src/` + строка в `crud/src/public-api.ts`.
 
 ## Codestyle
 

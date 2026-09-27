@@ -67,23 +67,27 @@
     <div>
       <label for="ref-code">Код</label>
       <input id="ref-code" type="text" pInputText formControlName="code" />
+      <argent-field-error [control]="form.controls.code" />
     </div>
 
     <div>
       <label for="ref-name">Название</label>
       <input id="ref-name" type="text" pInputText formControlName="name" />
+      <argent-field-error [control]="form.controls.name" />
     </div>
 
     <div>
       <label for="ref-active">Активен</label>
       <p-toggleswitch id="ref-active" formControlName="active" />
+      <argent-field-error [control]="form.controls.active" />
     </div>
 
     <div>
       <label for="ref-sort-order">Порядок сортировки</label>
       <p-inputnumber id="ref-sort-order" formControlName="sortOrder" />
+      <argent-field-error [control]="form.controls.sortOrder" />
     </div>
 
-    <p-button type="submit" label="Сохранить" />
+    <p-button type="submit" label="Сохранить" [loading]="saving()" />
   </form>
 </p-dialog>

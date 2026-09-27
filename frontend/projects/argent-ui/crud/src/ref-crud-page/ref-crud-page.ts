@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { Component, inject, input, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ReferenceControllerService } from 'argent-api';
+import { applyServerErrors, FieldError, problemMessage } from 'argent-ui';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { Button } from 'primeng/button';
 import { ConfirmDialog } from 'primeng/confirmdialog';
@@ -42,6 +43,7 @@ import { Toolbar } from 'primeng/toolbar';
     Tag,
     ConfirmDialog,
     Toast,
+    FieldError,
   ],
   providers: [ConfirmationService, MessageService],
   templateUrl: './ref-crud-page.html',
@@ -61,6 +63,7 @@ export class RefCrudPage {
   protected readonly totalRecords = signal(0);
   protected readonly loading = signal(false);
   protected readonly dialogVisible = signal(false);
+  protected readonly saving = signal(false);
   protected readonly editingItem = signal<RefItemResponse | null>(null);
 
   /** Последнее событие `(onLazyLoad)` — нужно, чтобы {@link reload} повторил тот же запрос
@@ -68,8 +71,14 @@ export class RefCrudPage {
   private lastLazyLoadEvent: TableLazyLoadEvent = { first: 0, rows: 10 };
 
   protected readonly form = new FormGroup({
-    code: new FormControl('', { nonNullable: true, validators: Validators.required }),
-    name: new FormControl('', { nonNullable: true, validators: Validators.required }),
+    code: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.maxLength(255)],
+    }),
+    name: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.maxLength(255)],
+    }),
     active: new FormControl(true, { nonNullable: true }),
     sortOrder: new FormControl(0, { nonNullable: true }),
   });
@@ -93,11 +102,12 @@ export class RefCrudPage {
         this.totalRecords.set(result.totalElements ?? 0);
         this.loading.set(false);
       },
-      error: () => {
+      error: (error: unknown) => {
         this.loading.set(false);
         this.messageService.add({
           severity: 'error',
           summary: 'Не удалось загрузить список',
+          detail: problemMessage(error, ''),
         });
       },
     });
@@ -129,6 +139,7 @@ export class RefCrudPage {
       return;
     }
 
+    this.saving.set(true);
     const request = this.form.getRawValue();
     const editing = this.editingItem();
     const result$ = editing
@@ -137,12 +148,21 @@ export class RefCrudPage {
 
     result$.subscribe({
       next: () => {
+        this.saving.set(false);
         this.dialogVisible.set(false);
         this.reload();
         this.messageService.add({ severity: 'success', summary: 'Сохранено' });
       },
-      error: () => {
-        this.messageService.add({ severity: 'error', summary: 'Не удалось сохранить' });
+      error: (error: unknown) => {
+        this.saving.set(false);
+        if (applyServerErrors(this.form, error)) {
+          return;
+        }
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Не удалось сохранить',
+          detail: problemMessage(error, ''),
+        });
       },
     });
   }
@@ -162,8 +182,12 @@ export class RefCrudPage {
         this.reload();
         this.messageService.add({ severity: 'success', summary: 'Удалено' });
       },
-      error: () => {
-        this.messageService.add({ severity: 'error', summary: 'Не удалось удалить' });
+      error: (error: unknown) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Не удалось удалить',
+          detail: problemMessage(error, ''),
+        });
       },
     });
   }
