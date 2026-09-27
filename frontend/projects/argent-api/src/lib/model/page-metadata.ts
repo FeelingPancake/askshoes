@@ -8,10 +8,9 @@
  * Do not edit the class manually.
  */
 
-export interface RefItemRequest {
-  code: string;
-  name: string;
-  active: boolean;
-  sortOrder: number;
-  attributes?: { [key: string]: any | null };
+export interface PageMetadata {
+  size?: number;
+  number?: number;
+  totalElements?: number;
+  totalPages?: number;
 }

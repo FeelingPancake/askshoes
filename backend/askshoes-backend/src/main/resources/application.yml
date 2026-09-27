@@ -6,6 +6,12 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
+  data:
+    web:
+      pageable:
+        # Page<T> из контроллеров сериализуется как стабильный PagedModel:
+        # { content, page: { size, number, totalElements, totalPages } }
+        serialization-mode: via-dto
 springdoc:
   default-produces-media-type: application/json
 argent:

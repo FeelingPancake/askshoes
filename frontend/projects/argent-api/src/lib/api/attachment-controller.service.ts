@@ -22,13 +22,9 @@ import { Observable } from 'rxjs';
 import { OpenApiHttpParams, QueryParamStyle } from '../query.params';
 
 // @ts-ignore
-import { Pageable } from '../model/pageable';
+import { AttachmentResponse } from '../model/attachment-response';
 // @ts-ignore
-import { PagedModelRefItemResponse } from '../model/paged-model-ref-item-response';
-// @ts-ignore
-import { RefItemRequest } from '../model/ref-item-request';
-// @ts-ignore
-import { RefItemResponse } from '../model/ref-item-response';
+import { ImportFileRequest } from '../model/import-file-request';
 
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS } from '../variables';
@@ -38,7 +34,7 @@ import { BaseService } from '../api.base.service';
 @Injectable({
   providedIn: 'root',
 })
-export class ReferenceControllerService extends BaseService {
+export class AttachmentControllerService extends BaseService {
   constructor(
     protected httpClient: HttpClient,
     @Optional() @Inject(BASE_PATH) basePath: string | string[],
@@ -48,46 +44,38 @@ export class ReferenceControllerService extends BaseService {
   }
 
   /**
-   * @endpoint delete /api/refs/{code}/{itemId}
-   * @param code
-   * @param itemId
+   * @endpoint delete /api/attachments/{id}
+   * @param id
    * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
    * @param reportProgress flag to report request and response progress.
    * @param options additional options
    */
-  public _delete(
-    code: string,
-    itemId: string,
+  public delete1(
+    id: string,
     observe?: 'body',
     reportProgress?: boolean,
     options?: { httpHeaderAccept?: undefined; context?: HttpContext; transferCache?: boolean },
   ): Observable<any>;
-  public _delete(
-    code: string,
-    itemId: string,
+  public delete1(
+    id: string,
     observe?: 'response',
     reportProgress?: boolean,
     options?: { httpHeaderAccept?: undefined; context?: HttpContext; transferCache?: boolean },
   ): Observable<HttpResponse<any>>;
-  public _delete(
-    code: string,
-    itemId: string,
+  public delete1(
+    id: string,
     observe?: 'events',
     reportProgress?: boolean,
     options?: { httpHeaderAccept?: undefined; context?: HttpContext; transferCache?: boolean },
   ): Observable<HttpEvent<any>>;
-  public _delete(
-    code: string,
-    itemId: string,
+  public delete1(
+    id: string,
     observe: any = 'body',
     reportProgress: boolean = false,
     options?: { httpHeaderAccept?: undefined; context?: HttpContext; transferCache?: boolean },
   ): Observable<any> {
-    if (code === null || code === undefined) {
-      throw new Error('Required parameter code was null or undefined when calling _delete.');
-    }
-    if (itemId === null || itemId === undefined) {
-      throw new Error('Required parameter itemId was null or undefined when calling _delete.');
+    if (id === null || id === undefined) {
+      throw new Error('Required parameter id was null or undefined when calling delete1.');
     }
 
     let localVarHeaders = this.defaultHeaders;
@@ -113,7 +101,7 @@ export class ReferenceControllerService extends BaseService {
       }
     }
 
-    let localVarPath = `/api/refs/${this.configuration.encodeParam({ name: 'code', value: code, in: 'path', style: 'simple', explode: false, dataType: 'string', dataFormat: undefined })}/${this.configuration.encodeParam({ name: 'itemId', value: itemId, in: 'path', style: 'simple', explode: false, dataType: 'string', dataFormat: 'uuid' })}`;
+    let localVarPath = `/api/attachments/${this.configuration.encodeParam({ name: 'id', value: id, in: 'path', style: 'simple', explode: false, dataType: 'string', dataFormat: 'uuid' })}`;
     const { basePath, withCredentials } = this.configuration;
     return this.httpClient.request<any>('delete', `${basePath}${localVarPath}`, {
       context: localVarHttpContext,
@@ -127,16 +115,14 @@ export class ReferenceControllerService extends BaseService {
   }
 
   /**
-   * @endpoint post /api/refs/{code}
-   * @param code
-   * @param refItemRequest
+   * @endpoint get /api/attachments/{id}
+   * @param id
    * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
    * @param reportProgress flag to report request and response progress.
    * @param options additional options
    */
-  public create(
-    code: string,
-    refItemRequest: RefItemRequest,
+  public download(
+    id: string,
     observe?: 'body',
     reportProgress?: boolean,
     options?: {
@@ -144,10 +130,9 @@ export class ReferenceControllerService extends BaseService {
       context?: HttpContext;
       transferCache?: boolean;
     },
-  ): Observable<RefItemResponse>;
-  public create(
-    code: string,
-    refItemRequest: RefItemRequest,
+  ): Observable<Blob>;
+  public download(
+    id: string,
     observe?: 'response',
     reportProgress?: boolean,
     options?: {
@@ -155,10 +140,9 @@ export class ReferenceControllerService extends BaseService {
       context?: HttpContext;
       transferCache?: boolean;
     },
-  ): Observable<HttpResponse<RefItemResponse>>;
-  public create(
-    code: string,
-    refItemRequest: RefItemRequest,
+  ): Observable<HttpResponse<Blob>>;
+  public download(
+    id: string,
     observe?: 'events',
     reportProgress?: boolean,
     options?: {
@@ -166,10 +150,9 @@ export class ReferenceControllerService extends BaseService {
       context?: HttpContext;
       transferCache?: boolean;
     },
-  ): Observable<HttpEvent<RefItemResponse>>;
-  public create(
-    code: string,
-    refItemRequest: RefItemRequest,
+  ): Observable<HttpEvent<Blob>>;
+  public download(
+    id: string,
     observe: any = 'body',
     reportProgress: boolean = false,
     options?: {
@@ -178,13 +161,8 @@ export class ReferenceControllerService extends BaseService {
       transferCache?: boolean;
     },
   ): Observable<any> {
-    if (code === null || code === undefined) {
-      throw new Error('Required parameter code was null or undefined when calling create.');
-    }
-    if (refItemRequest === null || refItemRequest === undefined) {
-      throw new Error(
-        'Required parameter refItemRequest was null or undefined when calling create.',
-      );
+    if (id === null || id === undefined) {
+      throw new Error('Required parameter id was null or undefined when calling download.');
     }
 
     let localVarHeaders = this.defaultHeaders;
@@ -199,31 +177,11 @@ export class ReferenceControllerService extends BaseService {
 
     const localVarTransferCache: boolean = options?.transferCache ?? true;
 
-    // to determine the Content-Type header
-    const consumes: string[] = ['application/json'];
-    const httpContentTypeSelected: string | undefined =
-      this.configuration.selectHeaderContentType(consumes);
-    if (httpContentTypeSelected !== undefined) {
-      localVarHeaders = localVarHeaders.set('Content-Type', httpContentTypeSelected);
-    }
-
-    let responseType_: 'text' | 'json' | 'blob' = 'json';
-    if (localVarHttpHeaderAcceptSelected) {
-      if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
-        responseType_ = 'text';
-      } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
-        responseType_ = 'json';
-      } else {
-        responseType_ = 'blob';
-      }
-    }
-
-    let localVarPath = `/api/refs/${this.configuration.encodeParam({ name: 'code', value: code, in: 'path', style: 'simple', explode: false, dataType: 'string', dataFormat: undefined })}`;
+    let localVarPath = `/api/attachments/${this.configuration.encodeParam({ name: 'id', value: id, in: 'path', style: 'simple', explode: false, dataType: 'string', dataFormat: 'uuid' })}`;
     const { basePath, withCredentials } = this.configuration;
-    return this.httpClient.request<RefItemResponse>('post', `${basePath}${localVarPath}`, {
+    return this.httpClient.request('get', `${basePath}${localVarPath}`, {
       context: localVarHttpContext,
-      body: refItemRequest,
-      responseType: <any>responseType_,
+      responseType: 'blob',
       ...(withCredentials ? { withCredentials } : {}),
       headers: localVarHeaders,
       observe: observe,
@@ -233,16 +191,16 @@ export class ReferenceControllerService extends BaseService {
   }
 
   /**
-   * @endpoint get /api/refs/{code}
-   * @param code
-   * @param pageable
+   * @endpoint get /api/attachments
+   * @param entityType
+   * @param entityId
    * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
    * @param reportProgress flag to report request and response progress.
    * @param options additional options
    */
-  public list(
-    code: string,
-    pageable: Pageable,
+  public list1(
+    entityType: string,
+    entityId: string,
     observe?: 'body',
     reportProgress?: boolean,
     options?: {
@@ -250,10 +208,10 @@ export class ReferenceControllerService extends BaseService {
       context?: HttpContext;
       transferCache?: boolean;
     },
-  ): Observable<PagedModelRefItemResponse>;
-  public list(
-    code: string,
-    pageable: Pageable,
+  ): Observable<Array<AttachmentResponse>>;
+  public list1(
+    entityType: string,
+    entityId: string,
     observe?: 'response',
     reportProgress?: boolean,
     options?: {
@@ -261,10 +219,10 @@ export class ReferenceControllerService extends BaseService {
       context?: HttpContext;
       transferCache?: boolean;
     },
-  ): Observable<HttpResponse<PagedModelRefItemResponse>>;
-  public list(
-    code: string,
-    pageable: Pageable,
+  ): Observable<HttpResponse<Array<AttachmentResponse>>>;
+  public list1(
+    entityType: string,
+    entityId: string,
     observe?: 'events',
     reportProgress?: boolean,
     options?: {
@@ -272,10 +230,10 @@ export class ReferenceControllerService extends BaseService {
       context?: HttpContext;
       transferCache?: boolean;
     },
-  ): Observable<HttpEvent<PagedModelRefItemResponse>>;
-  public list(
-    code: string,
-    pageable: Pageable,
+  ): Observable<HttpEvent<Array<AttachmentResponse>>>;
+  public list1(
+    entityType: string,
+    entityId: string,
     observe: any = 'body',
     reportProgress: boolean = false,
     options?: {
@@ -284,19 +242,27 @@ export class ReferenceControllerService extends BaseService {
       transferCache?: boolean;
     },
   ): Observable<any> {
-    if (code === null || code === undefined) {
-      throw new Error('Required parameter code was null or undefined when calling list.');
+    if (entityType === null || entityType === undefined) {
+      throw new Error('Required parameter entityType was null or undefined when calling list1.');
     }
-    if (pageable === null || pageable === undefined) {
-      throw new Error('Required parameter pageable was null or undefined when calling list.');
+    if (entityId === null || entityId === undefined) {
+      throw new Error('Required parameter entityId was null or undefined when calling list1.');
     }
 
     let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
     localVarQueryParameters = this.addToHttpParams(
       localVarQueryParameters,
-      'pageable',
-      <any>pageable,
+      'entityType',
+      <any>entityType,
+      QueryParamStyle.Form,
+      true,
+    );
+
+    localVarQueryParameters = this.addToHttpParams(
+      localVarQueryParameters,
+      'entityId',
+      <any>entityId,
       QueryParamStyle.Form,
       true,
     );
@@ -324,9 +290,9 @@ export class ReferenceControllerService extends BaseService {
       }
     }
 
-    let localVarPath = `/api/refs/${this.configuration.encodeParam({ name: 'code', value: code, in: 'path', style: 'simple', explode: false, dataType: 'string', dataFormat: undefined })}`;
+    let localVarPath = `/api/attachments`;
     const { basePath, withCredentials } = this.configuration;
-    return this.httpClient.request<PagedModelRefItemResponse>('get', `${basePath}${localVarPath}`, {
+    return this.httpClient.request<Array<AttachmentResponse>>('get', `${basePath}${localVarPath}`, {
       context: localVarHttpContext,
       params: localVarQueryParameters.toHttpParams(),
       responseType: <any>responseType_,
@@ -339,18 +305,18 @@ export class ReferenceControllerService extends BaseService {
   }
 
   /**
-   * @endpoint put /api/refs/{code}/{itemId}
-   * @param code
-   * @param itemId
-   * @param refItemRequest
+   * @endpoint post /api/attachments
+   * @param entityType
+   * @param entityId
+   * @param importFileRequest
    * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
    * @param reportProgress flag to report request and response progress.
    * @param options additional options
    */
-  public update(
-    code: string,
-    itemId: string,
-    refItemRequest: RefItemRequest,
+  public upload(
+    entityType: string,
+    entityId: string,
+    importFileRequest?: ImportFileRequest,
     observe?: 'body',
     reportProgress?: boolean,
     options?: {
@@ -358,11 +324,11 @@ export class ReferenceControllerService extends BaseService {
       context?: HttpContext;
       transferCache?: boolean;
     },
-  ): Observable<RefItemResponse>;
-  public update(
-    code: string,
-    itemId: string,
-    refItemRequest: RefItemRequest,
+  ): Observable<AttachmentResponse>;
+  public upload(
+    entityType: string,
+    entityId: string,
+    importFileRequest?: ImportFileRequest,
     observe?: 'response',
     reportProgress?: boolean,
     options?: {
@@ -370,11 +336,11 @@ export class ReferenceControllerService extends BaseService {
       context?: HttpContext;
       transferCache?: boolean;
     },
-  ): Observable<HttpResponse<RefItemResponse>>;
-  public update(
-    code: string,
-    itemId: string,
-    refItemRequest: RefItemRequest,
+  ): Observable<HttpResponse<AttachmentResponse>>;
+  public upload(
+    entityType: string,
+    entityId: string,
+    importFileRequest?: ImportFileRequest,
     observe?: 'events',
     reportProgress?: boolean,
     options?: {
@@ -382,11 +348,11 @@ export class ReferenceControllerService extends BaseService {
       context?: HttpContext;
       transferCache?: boolean;
     },
-  ): Observable<HttpEvent<RefItemResponse>>;
-  public update(
-    code: string,
-    itemId: string,
-    refItemRequest: RefItemRequest,
+  ): Observable<HttpEvent<AttachmentResponse>>;
+  public upload(
+    entityType: string,
+    entityId: string,
+    importFileRequest?: ImportFileRequest,
     observe: any = 'body',
     reportProgress: boolean = false,
     options?: {
@@ -395,17 +361,30 @@ export class ReferenceControllerService extends BaseService {
       transferCache?: boolean;
     },
   ): Observable<any> {
-    if (code === null || code === undefined) {
-      throw new Error('Required parameter code was null or undefined when calling update.');
+    if (entityType === null || entityType === undefined) {
+      throw new Error('Required parameter entityType was null or undefined when calling upload.');
     }
-    if (itemId === null || itemId === undefined) {
-      throw new Error('Required parameter itemId was null or undefined when calling update.');
+    if (entityId === null || entityId === undefined) {
+      throw new Error('Required parameter entityId was null or undefined when calling upload.');
     }
-    if (refItemRequest === null || refItemRequest === undefined) {
-      throw new Error(
-        'Required parameter refItemRequest was null or undefined when calling update.',
-      );
-    }
+
+    let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
+
+    localVarQueryParameters = this.addToHttpParams(
+      localVarQueryParameters,
+      'entityType',
+      <any>entityType,
+      QueryParamStyle.Form,
+      true,
+    );
+
+    localVarQueryParameters = this.addToHttpParams(
+      localVarQueryParameters,
+      'entityId',
+      <any>entityId,
+      QueryParamStyle.Form,
+      true,
+    );
 
     let localVarHeaders = this.defaultHeaders;
 
@@ -438,11 +417,12 @@ export class ReferenceControllerService extends BaseService {
       }
     }
 
-    let localVarPath = `/api/refs/${this.configuration.encodeParam({ name: 'code', value: code, in: 'path', style: 'simple', explode: false, dataType: 'string', dataFormat: undefined })}/${this.configuration.encodeParam({ name: 'itemId', value: itemId, in: 'path', style: 'simple', explode: false, dataType: 'string', dataFormat: 'uuid' })}`;
+    let localVarPath = `/api/attachments`;
     const { basePath, withCredentials } = this.configuration;
-    return this.httpClient.request<RefItemResponse>('put', `${basePath}${localVarPath}`, {
+    return this.httpClient.request<AttachmentResponse>('post', `${basePath}${localVarPath}`, {
       context: localVarHttpContext,
-      body: refItemRequest,
+      body: importFileRequest,
+      params: localVarQueryParameters.toHttpParams(),
       responseType: <any>responseType_,
       ...(withCredentials ? { withCredentials } : {}),
       headers: localVarHeaders,

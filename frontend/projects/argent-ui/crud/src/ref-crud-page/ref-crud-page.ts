@@ -99,7 +99,7 @@ export class RefCrudPage {
     this.referenceApi.list(this.code(), { page, size: rows, sort }).subscribe({
       next: (result) => {
         this.items.set(result.content ?? []);
-        this.totalRecords.set(result.totalElements ?? 0);
+        this.totalRecords.set(result.page?.totalElements ?? 0);
         this.loading.set(false);
       },
       error: (error: unknown) => {
