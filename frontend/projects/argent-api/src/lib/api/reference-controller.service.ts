@@ -22,9 +22,9 @@ import { Observable } from 'rxjs';
 import { OpenApiHttpParams, QueryParamStyle } from '../query.params';
 
 // @ts-ignore
-import { PageRefItemResponse } from '../model/page-ref-item-response';
-// @ts-ignore
 import { Pageable } from '../model/pageable';
+// @ts-ignore
+import { PagedModelRefItemResponse } from '../model/paged-model-ref-item-response';
 // @ts-ignore
 import { RefItemRequest } from '../model/ref-item-request';
 // @ts-ignore
@@ -250,7 +250,7 @@ export class ReferenceControllerService extends BaseService {
       context?: HttpContext;
       transferCache?: boolean;
     },
-  ): Observable<PageRefItemResponse>;
+  ): Observable<PagedModelRefItemResponse>;
   public list(
     code: string,
     pageable: Pageable,
@@ -261,7 +261,7 @@ export class ReferenceControllerService extends BaseService {
       context?: HttpContext;
       transferCache?: boolean;
     },
-  ): Observable<HttpResponse<PageRefItemResponse>>;
+  ): Observable<HttpResponse<PagedModelRefItemResponse>>;
   public list(
     code: string,
     pageable: Pageable,
@@ -272,7 +272,7 @@ export class ReferenceControllerService extends BaseService {
       context?: HttpContext;
       transferCache?: boolean;
     },
-  ): Observable<HttpEvent<PageRefItemResponse>>;
+  ): Observable<HttpEvent<PagedModelRefItemResponse>>;
   public list(
     code: string,
     pageable: Pageable,
@@ -326,7 +326,7 @@ export class ReferenceControllerService extends BaseService {
 
     let localVarPath = `/api/refs/${this.configuration.encodeParam({ name: 'code', value: code, in: 'path', style: 'simple', explode: false, dataType: 'string', dataFormat: undefined })}`;
     const { basePath, withCredentials } = this.configuration;
-    return this.httpClient.request<PageRefItemResponse>('get', `${basePath}${localVarPath}`, {
+    return this.httpClient.request<PagedModelRefItemResponse>('get', `${basePath}${localVarPath}`, {
       context: localVarHttpContext,
       params: localVarQueryParameters.toHttpParams(),
       responseType: <any>responseType_,

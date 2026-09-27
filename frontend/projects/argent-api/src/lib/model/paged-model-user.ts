@@ -7,9 +7,10 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { PageMetadata } from './page-metadata';
+import { User } from './user';
 
-export interface SortObject {
-  empty?: boolean;
-  unsorted?: boolean;
-  sorted?: boolean;
+export interface PagedModelUser {
+  content?: Array<User>;
+  page?: PageMetadata;
 }

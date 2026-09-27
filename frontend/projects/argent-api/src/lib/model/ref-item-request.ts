@@ -9,9 +9,9 @@
  */
 
 export interface RefItemRequest {
-  code?: string;
-  name?: string;
-  active?: boolean;
-  sortOrder?: number;
+  code: string;
+  name: string;
+  active: boolean;
+  sortOrder: number;
   attributes?: { [key: string]: any | null };
 }

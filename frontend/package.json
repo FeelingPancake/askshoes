@@ -12,7 +12,7 @@
     "format": "prettier --write \"projects/**/*.{ts,html,scss}\"",
     "format:check": "prettier --check \"projects/**/*.{ts,html,scss}\"",
     "fetch-openapi-spec": "curl -s http://127.0.0.1:8080/v3/api-docs -o openapi.json",
-    "generate-api": "npm run fetch-openapi-spec && openapi-generator-cli generate -i openapi.json -g typescript-angular -o projects/argent-api/src/lib --additional-properties=ngVersion=21.2.0,providedInRoot=true,npmName=argent-api,fileNaming=kebab-case",
+    "generate-api": "npm run fetch-openapi-spec && openapi-generator-cli generate -i openapi.json -g typescript-angular -o projects/argent-api/src/lib --additional-properties=ngVersion=21.2.0,providedInRoot=true,npmName=argent-api,fileNaming=kebab-case && prettier --write \"projects/argent-api/src/**/*.ts\"",
     "build-libs": "ng build argent-api && ng build argent-ui"
   },
   "private": true,

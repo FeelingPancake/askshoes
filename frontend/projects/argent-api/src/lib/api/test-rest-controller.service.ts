@@ -22,9 +22,9 @@ import { Observable } from 'rxjs';
 import { OpenApiHttpParams, QueryParamStyle } from '../query.params';
 
 // @ts-ignore
-import { PageUser } from '../model/page-user';
-// @ts-ignore
 import { Pageable } from '../model/pageable';
+// @ts-ignore
+import { PagedModelUser } from '../model/paged-model-user';
 // @ts-ignore
 import { User } from '../model/user';
 
@@ -228,7 +228,7 @@ export class TestRestControllerService extends BaseService {
       context?: HttpContext;
       transferCache?: boolean;
     },
-  ): Observable<PageUser>;
+  ): Observable<PagedModelUser>;
   public listUsers(
     pageable: Pageable,
     usernameContains?: string,
@@ -239,7 +239,7 @@ export class TestRestControllerService extends BaseService {
       context?: HttpContext;
       transferCache?: boolean;
     },
-  ): Observable<HttpResponse<PageUser>>;
+  ): Observable<HttpResponse<PagedModelUser>>;
   public listUsers(
     pageable: Pageable,
     usernameContains?: string,
@@ -250,7 +250,7 @@ export class TestRestControllerService extends BaseService {
       context?: HttpContext;
       transferCache?: boolean;
     },
-  ): Observable<HttpEvent<PageUser>>;
+  ): Observable<HttpEvent<PagedModelUser>>;
   public listUsers(
     pageable: Pageable,
     usernameContains?: string,
@@ -309,7 +309,7 @@ export class TestRestControllerService extends BaseService {
 
     let localVarPath = `/api/test/users`;
     const { basePath, withCredentials } = this.configuration;
-    return this.httpClient.request<PageUser>('get', `${basePath}${localVarPath}`, {
+    return this.httpClient.request<PagedModelUser>('get', `${basePath}${localVarPath}`, {
       context: localVarHttpContext,
       params: localVarQueryParameters.toHttpParams(),
       responseType: <any>responseType_,
