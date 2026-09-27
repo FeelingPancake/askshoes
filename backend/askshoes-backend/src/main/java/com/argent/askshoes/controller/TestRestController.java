@@ -21,8 +21,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Временный debug-код для ручной проверки ядра — не часть реального UI AskShoes. Подлежит
- * удалению.
+ * Временный debug-код для ручной проверки ядра — не часть реального UI AskShoes. Подлежит удалению.
  */
 @RestController
 @RequestMapping("/api/test")
