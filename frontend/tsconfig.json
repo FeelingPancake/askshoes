@@ -8,7 +8,8 @@
     "module": "preserve",
     "paths": {
       "argent-api": ["./dist/argent-api"],
-      "argent-ui": ["./dist/argent-ui"]
+      "argent-ui": ["./dist/argent-ui"],
+      "argent-ui/*": ["./dist/argent-ui/*"]
     },
     "strict": true,
     "noFallthroughCasesInSwitch": true,

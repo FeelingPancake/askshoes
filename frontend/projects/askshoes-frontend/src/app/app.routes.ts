@@ -1,5 +1,4 @@
 import type { Route, Routes } from '@angular/router';
-import { RefCrudPage } from 'argent-ui';
 import { StubPage } from './pages/stub-page/stub-page';
 
 /** Маршрут подраздела-заглушки: {@link StubPage} с заголовком из `data`. */
@@ -38,7 +37,7 @@ export const routes: Routes = [
   { path: 'settings', pathMatch: 'full', redirectTo: 'settings/refs' },
   {
     path: 'settings/refs',
-    component: RefCrudPage,
+    loadComponent: async () => import('argent-ui/crud').then((m) => m.RefCrudPage),
     data: { code: 'COLOR', title: 'Цвета' },
   },
   stub('settings/users', 'Пользователи'),
