@@ -22,6 +22,7 @@ model/paged-model-ref-item-response.ts
 model/paged-model-user.ts
 model/ref-item-request.ts
 model/ref-item-response.ts
+model/ref-type-response.ts
 model/user.ts
 param.ts
 provide-api.ts

@@ -1,8 +1,10 @@
 import type { RefItemResponse } from 'argent-api';
-import type { TableLazyLoadEvent } from 'primeng/table';
+import { Table, TableLazyLoadEvent } from 'primeng/table';
 import { CommonModule } from '@angular/common';
-import { Component, inject, input, signal } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Component, effect, inject, input, signal, untracked, viewChild } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ReferenceControllerService } from 'argent-api';
 import { applyServerErrors, FieldError, problemMessage } from 'argent-ui';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -11,6 +13,7 @@ import { ConfirmDialog } from 'primeng/confirmdialog';
 import { Dialog } from 'primeng/dialog';
 import { InputNumber } from 'primeng/inputnumber';
 import { InputText } from 'primeng/inputtext';
+import { Select } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { Tag } from 'primeng/tag';
 import { Toast } from 'primeng/toast';
@@ -44,6 +47,8 @@ import { Toolbar } from 'primeng/toolbar';
     ConfirmDialog,
     Toast,
     FieldError,
+    Select,
+    FormsModule,
   ],
   providers: [ConfirmationService, MessageService],
   templateUrl: './ref-crud-page.html',
@@ -53,19 +58,21 @@ export class RefCrudPage {
   private readonly referenceApi = inject(ReferenceControllerService);
   private readonly confirmationService = inject(ConfirmationService);
   private readonly messageService = inject(MessageService);
+  private readonly router = inject(Router);
+  private readonly activatedRoute = inject(ActivatedRoute);
+  private readonly table = viewChild.required(Table);
 
   /** Код типа справочника (`krn_ref_type.code`), например {@code "COLOR"}. */
   readonly code = input.required<string>();
   /** Заголовок страницы; по умолчанию — сам {@link code}. */
   readonly title = input<string>();
-
+  protected readonly refTypes = toSignal(this.referenceApi.listTypes(), { initialValue: [] });
   protected readonly items = signal<RefItemResponse[]>([]);
   protected readonly totalRecords = signal(0);
   protected readonly loading = signal(false);
   protected readonly dialogVisible = signal(false);
   protected readonly saving = signal(false);
   protected readonly editingItem = signal<RefItemResponse | null>(null);
-
   /** Последнее событие `(onLazyLoad)` — нужно, чтобы {@link reload} повторил тот же запрос
    * (страницу/сортировку), а не сбрасывал пользователя на начало списка после save/delete. */
   private lastLazyLoadEvent: TableLazyLoadEvent = { first: 0, rows: 10 };
@@ -83,6 +90,12 @@ export class RefCrudPage {
     sortOrder: new FormControl(0, { nonNullable: true }),
   });
 
+  constructor() {
+    effect(() => {
+      this.code(); // подписываемся на code
+      untracked(() => this.table().reset());
+    });
+  }
   /**
    * Обработчик `(onLazyLoad)` таблицы — вызывается PrimeNG и при первой отрисовке, и при каждой
    * смене страницы/сортировки. Строит {@code Pageable}-совместимый запрос из события таблицы и
@@ -174,6 +187,10 @@ export class RefCrudPage {
       icon: 'pi pi-exclamation-triangle',
       accept: () => this.delete(item),
     });
+  }
+
+  onTypeChange(code: string): void {
+    this.router.navigate(['..', code], { relativeTo: this.activatedRoute });
   }
 
   private delete(item: RefItemResponse): void {

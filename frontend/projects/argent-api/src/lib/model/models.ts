@@ -9,4 +9,5 @@ export * from './paged-model-ref-item-response';
 export * from './paged-model-user';
 export * from './ref-item-request';
 export * from './ref-item-response';
+export * from './ref-type-response';
 export * from './user';

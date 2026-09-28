@@ -2,10 +2,12 @@ package com.atomskills.argent.reference;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,11 +23,21 @@ import org.springframework.web.bind.annotation.RestController;
  * вместо контроллера на каждый справочник.
  */
 @RestController
-@RequestMapping("api/refs/{code}")
+@RequestMapping("api/refs")
 @RequiredArgsConstructor
 public class ReferenceController {
   private final RefTypeRepository refTypeRepository;
   private final RefItemRepository refItemRepository;
+
+  /**
+   * Получение пагинированного списка всех доступных справочников
+   *
+   * @return страница справочников
+   */
+  @GetMapping()
+  public List<RefTypeResponse> listTypes() {
+    return refTypeRepository.findAll(Sort.by("name")).stream().map(RefTypeResponse::from).toList();
+  }
 
   /**
    * Список позиций справочника с пагинацией/сортировкой.
@@ -35,7 +47,7 @@ public class ReferenceController {
    * @return страница позиций
    * @throws jakarta.persistence.EntityNotFoundException если такого типа справочника нет
    */
-  @GetMapping
+  @GetMapping("{code}")
   public Page<RefItemResponse> list(@PathVariable String code, Pageable pageable) {
     RefType refType =
         refTypeRepository
@@ -56,7 +68,7 @@ public class ReferenceController {
    * @return созданная позиция (с присвоенным {@code id})
    * @throws jakarta.persistence.EntityNotFoundException если такого типа справочника нет
    */
-  @PostMapping
+  @PostMapping("{code}")
   public RefItemResponse create(
       @PathVariable String code, @Valid @RequestBody RefItemRequest request) {
     RefType refType =
@@ -82,7 +94,7 @@ public class ReferenceController {
    * @return обновлённая позиция
    * @throws jakarta.persistence.EntityNotFoundException если позиции с таким {@code itemId} нет
    */
-  @PutMapping("{itemId}")
+  @PutMapping("{code}/{itemId}")
   public RefItemResponse update(
       @PathVariable String code,
       @PathVariable UUID itemId,
@@ -105,7 +117,7 @@ public class ReferenceController {
    * @param code код типа справочника
    * @param itemId id удаляемой позиции
    */
-  @DeleteMapping("{itemId}")
+  @DeleteMapping("{code}/{itemId}")
   public void delete(@PathVariable String code, @PathVariable UUID itemId) {
     refItemRepository.deleteById(itemId);
   }
