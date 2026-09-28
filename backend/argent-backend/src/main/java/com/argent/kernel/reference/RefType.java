@@ -29,4 +29,7 @@ public class RefType {
 
   @Column(name = "code", unique = true)
   String code;
+
+  @Column(name = "name")
+  String name;
 }

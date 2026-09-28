@@ -3,7 +3,8 @@
 
 <p-toolbar>
   <ng-template #start>
-    <h2>{{ title() || code() }}</h2>
+    <p-select [options]="refTypes()" optionLabel="name" optionValue="code"
+              [ngModel]="code()" (onChange)="onTypeChange($event.value)" />
   </ng-template>
   <ng-template #end>
     <p-button label="Добавить" icon="pi pi-plus" (onClick)="openCreate()" />

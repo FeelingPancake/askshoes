@@ -1,0 +1,1 @@
+ALTER TABLE IF EXISTS krn_ref_type ADD COLUMN name varchar(255) NULL;

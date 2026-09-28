@@ -35,10 +35,10 @@ export const routes: Routes = [
   stub('reports', 'Отчёты'),
 
   { path: 'settings', pathMatch: 'full', redirectTo: 'settings/refs' },
+  { path: 'settings/refs', pathMatch: 'full', redirectTo: 'settings/refs/COLOR' },
   {
-    path: 'settings/refs',
+    path: 'settings/refs/:code',
     loadComponent: async () => import('argent-ui/crud').then((m) => m.RefCrudPage),
-    data: { code: 'COLOR', title: 'Цвета' },
   },
   stub('settings/users', 'Пользователи'),
   stub('settings/integrations', 'Интеграции'),
