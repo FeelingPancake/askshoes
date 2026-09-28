@@ -35,6 +35,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import javax.sql.DataSource;
+import org.flywaydb.core.Flyway;
 import org.hibernate.boot.Metadata;
 import org.hibernate.boot.spi.BootstrapContext;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
@@ -45,6 +47,8 @@ import org.hibernate.jpa.boot.spi.IntegratorProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.flyway.autoconfigure.FlywayConfigurationCustomizer;
+import org.springframework.boot.flyway.autoconfigure.FlywayMigrationStrategy;
 import org.springframework.boot.hibernate.autoconfigure.HibernatePropertiesCustomizer;
 import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.context.annotation.Bean;
@@ -292,5 +296,24 @@ public class ArgentAutoConfiguration {
 
     return hibernateProperties ->
         hibernateProperties.put("hibernate.integrator_provider", integratorProvider);
+  }
+
+  @Bean
+  public FlywayConfigurationCustomizer flywayConfigurationCustomizer() {
+    return configuration -> configuration.baselineOnMigrate(true).baselineVersion("0");
+  }
+
+  @Bean
+  public FlywayMigrationStrategy flywayMigrationStrategy(DataSource dataSource) {
+    return appFlyway -> {
+      Flyway.configure()
+          .dataSource(dataSource)
+          .locations("classpath:db/kernel")
+          .table("krn_schema_history")
+          .load()
+          .migrate();
+
+      appFlyway.migrate();
+    };
   }
 }
