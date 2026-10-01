@@ -13,6 +13,7 @@ import org.hibernate.persister.entity.EntityPersister;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 
 /**
  * Перехватывает {@code INSERT}/{@code UPDATE}/{@code DELETE} любой сущности Hibernate и пишет
@@ -100,6 +101,12 @@ public class AuditEventListener
       } catch (IllegalArgumentException e) {
         // Authentication есть, но её "имя" — не UUID пользователя (например, анонимная сессия) —
         // тогда просто не знаем, кто автор изменения, это не ошибка.
+      }
+      // Имя — из claim'а токена, а не запросом в krn_user: listener работает посреди flush, лишний
+      // запрос здесь не нужен. Пишется имя на момент изменения — переименование старые записи не
+      // меняет. Токены, выданные до появления claim'а, дают null.
+      if (authentication.getPrincipal() instanceof Jwt jwt) {
+        actorName = jwt.getClaimAsString("username");
       }
     }
     jdbcTemplate.update(
