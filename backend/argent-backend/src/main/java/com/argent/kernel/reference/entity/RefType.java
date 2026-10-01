@@ -1,4 +1,4 @@
-package com.argent.kernel.reference;
+package com.argent.kernel.reference.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

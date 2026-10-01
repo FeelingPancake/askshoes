@@ -1,4 +1,4 @@
-package com.argent.kernel.reference;
+package com.argent.kernel.reference.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

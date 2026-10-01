@@ -9,6 +9,7 @@ import com.argent.kernel.auth.UserAuthRepository;
 import com.argent.kernel.auth.UserSession;
 import com.argent.kernel.auth.UserSessionRepository;
 import com.argent.kernel.error.ArgentExceptionHandler;
+import com.argent.kernel.reference.RefImportService;
 import com.argent.kernel.reference.RefItemRepository;
 import com.argent.kernel.reference.RefTypeRepository;
 import com.argent.kernel.reference.ReferenceController;
@@ -73,6 +74,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Точка входа ядра {@code argent} в любое Spring Boot приложение, подключившее {@code
@@ -119,9 +121,21 @@ public class ArgentAutoConfiguration {
   }
 
   @Bean
+  public RefImportService refImportService(
+      RefTypeRepository refTypeRepository,
+      RefItemRepository refItemRepository,
+      TableImportService tableImportService,
+      JsonMapper jsonMapper) {
+    return new RefImportService(
+        refTypeRepository, refItemRepository, tableImportService, jsonMapper);
+  }
+
+  @Bean
   public ReferenceController referenceController(
-      RefTypeRepository refTypeRepository, RefItemRepository refItemRepository) {
-    return new ReferenceController(refTypeRepository, refItemRepository);
+      RefTypeRepository refTypeRepository,
+      RefItemRepository refItemRepository,
+      RefImportService refImportService) {
+    return new ReferenceController(refTypeRepository, refItemRepository, refImportService);
   }
 
   @Bean

@@ -1,5 +1,6 @@
-package com.argent.kernel.reference;
+package com.argent.kernel.reference.dto;
 
+import com.argent.kernel.reference.entity.RefItem;
 import java.util.Map;
 import java.util.UUID;
 
