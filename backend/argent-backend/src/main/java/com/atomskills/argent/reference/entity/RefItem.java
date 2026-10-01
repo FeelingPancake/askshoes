@@ -1,4 +1,4 @@
-package com.atomskills.argent.reference;
+package com.atomskills.argent.reference.entity;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;

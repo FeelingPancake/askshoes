@@ -60,6 +60,15 @@ public class ArgentExceptionHandler extends ResponseEntityExceptionHandler {
     return problem(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
   }
 
+  @ExceptionHandler(ValidationErrorsException.class)
+  public ProblemDetail handleValidationException(
+      ValidationErrorsException validationErrorsException) {
+    ProblemDetail problemDetail = problem(HttpStatus.BAD_REQUEST, "Ошибка валидации");
+    problemDetail.setProperty("errors", validationErrorsException.getErrors());
+
+    return problemDetail;
+  }
+
   @Override
   protected ResponseEntity<Object> handleMethodArgumentNotValid(
       MethodArgumentNotValidException ex,

@@ -1,5 +1,6 @@
 package com.atomskills.argent.reference;
 
+import com.atomskills.argent.reference.entity.RefType;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;

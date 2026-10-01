@@ -1,5 +1,6 @@
-package com.atomskills.argent.reference;
+package com.atomskills.argent.reference.dto;
 
+import com.atomskills.argent.reference.entity.RefItem;
 import java.util.Map;
 import java.util.UUID;
 

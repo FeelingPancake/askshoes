@@ -6,7 +6,8 @@
 ## Что внутри
 
 - **`com.atomskills.argent`** — `ArgentAutoConfiguration` (точка входа, autoconfigure),
-  `ArgentExceptionHandler` (единый формат ошибок, RFC 7807).
+  `ArgentExceptionHandler` (единый формат ошибок, RFC 7807); `ValidationErrorsException` — ручная
+  валидация с ответом 400 в том же формате, что и `@Valid`.
 - **`com.atomskills.argent.user`** — пользователи ядра (`krn_user`).
 - **`com.atomskills.argent.auth`** — пароли, сессии, выдача JWT (`krn_user_auth`,
   `krn_user_session`, `POST /api/auth/login`).
@@ -14,7 +15,8 @@
   каждом запросе (default-deny).
 - **`com.atomskills.argent.reference`** — универсальный справочник (`krn_ref_type`,
   `krn_ref_item`), один REST-контроллер `/api/refs/{code}` (GET/POST/PUT/DELETE) на любое
-  количество плоских справочников.
+  количество плоских справочников; `POST /api/refs/import` — импорт многих справочников одним
+  XLSX/JSON-файлом (upsert по `code`, всё или ничего).
 - **`com.atomskills.argent.sequence`** — генерация номеров документов по шаблону (`krn_sequence`)
   с атомарным инкрементом/сбросом счётчика (`NumberGenerator`).
 - **`com.atomskills.argent.audit`** — автоматический журнал изменений любой JPA-сущности

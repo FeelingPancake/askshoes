@@ -1,4 +1,4 @@
-package com.atomskills.argent.reference;
+package com.atomskills.argent.reference.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
