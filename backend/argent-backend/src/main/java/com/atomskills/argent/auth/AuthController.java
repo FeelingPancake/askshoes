@@ -40,7 +40,7 @@ public class AuthController {
   /**
    * Проверяет логин/пароль, создаёт новую {@link UserSession} (по умолчанию на 30 дней, см. {@link
    * UserSession#prePersist()}) и выдаёт подписанный JWT (claims: {@code sub} — id пользователя,
-   * {@code sessionId} — id созданной сессии).
+   * {@code sessionId} — id созданной сессии, {@code username} — логин, для журнала аудита).
    *
    * @param request логин и пароль
    * @return токен для заголовка {@code Authorization: Bearer <token>}
@@ -73,6 +73,7 @@ public class AuthController {
             .issuedAt(now)
             .expiresAt(userSession.getExpiresAt())
             .claim("sessionId", userSession.getId().toString())
+            .claim("username", user.getUsername())
             .build();
     JwsHeader header = JwsHeader.with(SignatureAlgorithm.RS256).build();
 
