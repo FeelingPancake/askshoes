@@ -8,6 +8,9 @@ docs/
 # Загруженные вложения (argent.attachment, локальная файловая система) — реальные данные, не код
 storage-data/
 
+# IntelliJ HTTP Client — логины/пароли (шаблон: *.private.env.json.example)
+http-client.private.env.json
+
 # Node / Angular (frontend)
 node_modules/
 dist/
