@@ -1,23 +1,19 @@
-### Регрессионный набор приёмки заказа (рефакторинг OrderService)
+# Регрессионный набор приёмки заказа (рефакторинг OrderService)
 #
 # Запуск: IntelliJ HTTP Client, окружение `local`, «Run All Requests in File».
-# Логин/пароль — в http-client.private.env.json (см. *.example рядом, файл не коммитится).
+# Требует argent.auth.registration.enabled: true в askshoes application.yml.
 #
 # Справочники в БД пустые (seed создаёт только типы), поэтому блок 0 заводит позиции.
-# Коды получают суффикс прогона {{run}} — файл можно гонять повторно; позиции копятся в БД.
+# Каждый прогон регистрирует своего пользователя t{{run}}, а коды справочников получают
+# суффикс {{run}} — файл можно гонять повторно; пользователи и позиции копятся в БД.
 #
 # Ожидаемые значения сняты с поведения ДО рефакторинга. Единственный заведомо красный
 # тест — помеченный [БАГ]: он станет зелёным, когда ошибки перестанут перезаписываться.
 
-### 0.0 Логин
-POST {{host}}/api/auth/login
-Content-Type: application/json
-
-{"username": "{{username}}", "password": "{{password}}"}
+### 0.0 Подготовка: переменные прогона (открытый эндпоинт — только ради обработчика)
+GET {{host}}/v3/api-docs
 
 > {%
-  client.test("логин 200", () => client.assert(response.status === 200, "status " + response.status));
-  client.global.set("token", response.body.token);
   const run = Date.now().toString();
   client.global.set("run", run);
   // 11 цифр с ведущей 8 → нормализуется в 79XXXXXXXXX
@@ -25,6 +21,17 @@ Content-Type: application/json
   client.global.set("phone8", "89" + run.slice(-9));
   client.global.set("phoneNorm", "79" + run.slice(-9));
   client.global.set("phoneTail", run.slice(-7));
+%}
+
+### 0.0.1 Регистрация пользователя прогона → токен
+POST {{host}}/api/auth/register
+Content-Type: application/json
+
+{"username": "t{{run}}", "displayName": "Регресс заказов", "password": "secret123"}
+
+> {%
+  client.test("регистрация 201", () => client.assert(response.status === 201, "status " + response.status));
+  client.global.set("token", response.body.token);
 %}
 
 ### 0.1 ITEM_CATEGORY: обувь
@@ -189,7 +196,7 @@ Content-Type: application/json
 > {% client.test("200", () => client.assert(response.status === 200)); client.global.set("st_regular", response.body.id); %}
 
 
-### ============================================================ A. Создание
+# ============================================================ A. Создание
 ### A1 Создание: 2 изделия, гарантия обнуляет работы, скидка 10%
 # изделие 1: 1500 + 800 = 2300; изделие 2 (гарантия): 0
 # worksTotal 2300, скидка 230.00, total 2070.00, оплачено 1000 → к оплате 1070.00
@@ -291,7 +298,7 @@ Authorization: Bearer {{token}}
 %}
 
 
-### ============================================================ U. Обновление
+# ============================================================ U. Обновление
 ### U1 Обновление: изделие 1 меняется, изделие 2 удаляется, изделие 3 добавляется
 # изделие 1: каблук 2000 (тот же id) + новая чистка 800 = 2800, повреждения → только трещина
 # изделие 3: чистка 800, без гарантии
@@ -353,7 +360,7 @@ Content-Type: application/json
 %}
 
 
-### ============================================================ E. Ошибки создания
+# ============================================================ E. Ошибки создания
 ### E1 Несуществующая позиция справочника
 POST {{host}}/api/orders
 Authorization: Bearer {{token}}
@@ -609,7 +616,7 @@ Content-Type: application/json
 %}
 
 
-### ============================================================ P. Ошибки обновления
+# ============================================================ P. Ошибки обновления
 ### P1 Изделие не из этого заказа
 PUT {{host}}/api/orders/{{order_id}}
 Authorization: Bearer {{token}}

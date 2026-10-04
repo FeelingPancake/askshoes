@@ -9,7 +9,6 @@ import jakarta.validation.constraints.Size;
  * @param username логин пользователя; уникален, сравнивается с учётом регистра
  * @param displayName отображаемое имя
  * @param password пароль в открытом виде, 6–36 символов; хранится только bcrypt-хеш
- * @param displayName отображаемое имя
  */
 public record RegisterRequest(
     @NotBlank @Size(max = 255) String username,
