@@ -1,4 +1,4 @@
-### Регистрация и логин (argent.auth)
+# Регистрация и логин (argent.auth)
 #
 # Запуск: IntelliJ HTTP Client, окружение `local`, «Run All Requests in File».
 # Требует argent.auth.registration.enabled: true в askshoes application.yml.
