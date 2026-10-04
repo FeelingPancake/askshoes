@@ -17,3 +17,8 @@ springdoc:
 argent:
   storage:
     root-path: ./storage-data
+  auth:
+    registration:
+      enabled: true
+      default-roles:
+        - ADMIN

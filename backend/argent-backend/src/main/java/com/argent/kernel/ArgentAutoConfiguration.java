@@ -4,10 +4,7 @@ import com.argent.kernel.attachment.AttachmentController;
 import com.argent.kernel.attachment.AttachmentRepository;
 import com.argent.kernel.attachment.AttachmentStorageService;
 import com.argent.kernel.audit.AuditEventListener;
-import com.argent.kernel.auth.AuthController;
-import com.argent.kernel.auth.UserAuthRepository;
-import com.argent.kernel.auth.UserSession;
-import com.argent.kernel.auth.UserSessionRepository;
+import com.argent.kernel.auth.*;
 import com.argent.kernel.error.ArgentExceptionHandler;
 import com.argent.kernel.reference.RefImportService;
 import com.argent.kernel.reference.RefItemRepository;
@@ -48,6 +45,7 @@ import org.hibernate.jpa.boot.spi.IntegratorProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.flyway.autoconfigure.FlywayConfigurationCustomizer;
 import org.springframework.boot.flyway.autoconfigure.FlywayMigrationStrategy;
 import org.springframework.boot.hibernate.autoconfigure.HibernatePropertiesCustomizer;
@@ -94,6 +92,7 @@ import tools.jackson.databind.json.JsonMapper;
 @AutoConfiguration
 @EnableJpaRepositories
 @EntityScan(basePackages = "com.argent.kernel")
+@EnableConfigurationProperties(RegistrationProperties.class)
 public class ArgentAutoConfiguration {
 
   /** Диагностический маячок — подтверждает, что autoconfigure реально подхватился. */
@@ -110,14 +109,39 @@ public class ArgentAutoConfiguration {
   }
 
   @Bean
+  public TokenService tokenService(
+      UserSessionRepository userSessionRepository, JwtEncoder jwtEncoder) {
+    return new TokenService(userSessionRepository, jwtEncoder);
+  }
+
+  @Bean
+  public RegistrationService registrationService(
+      RegistrationProperties registrationProperties,
+      UserRepository userRepository,
+      UserAuthRepository userAuthRepository,
+      PasswordEncoder passwordEncoder,
+      RoleRepository roleRepository,
+      UserRoleRepository userRoleRepository,
+      TokenService tokenService) {
+    return new RegistrationService(
+        registrationProperties,
+        userRepository,
+        userAuthRepository,
+        passwordEncoder,
+        roleRepository,
+        userRoleRepository,
+        tokenService);
+  }
+
+  @Bean
   public AuthController authController(
       UserRepository userRepository,
       UserAuthRepository userAuthRepository,
       PasswordEncoder passwordEncoder,
-      UserSessionRepository userSessionRepository,
-      JwtEncoder jwtEncoder) {
+      TokenService tokenService,
+      RegistrationService registrationService) {
     return new AuthController(
-        userRepository, userAuthRepository, passwordEncoder, userSessionRepository, jwtEncoder);
+        userRepository, userAuthRepository, passwordEncoder, tokenService, registrationService);
   }
 
   @Bean
@@ -225,6 +249,7 @@ public class ArgentAutoConfiguration {
             auth ->
                 auth.requestMatchers(
                         "/api/auth/login",
+                        "/api/auth/register",
                         "/api/test/**",
                         "/v3/api-docs/**",
                         "/swagger-ui.html",
