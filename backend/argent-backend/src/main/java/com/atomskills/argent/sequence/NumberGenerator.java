@@ -1,6 +1,7 @@
 package com.atomskills.argent.sequence;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -47,8 +48,9 @@ public class NumberGenerator {
 
   /**
    * Вычисляет "ключ периода" на основе текущей даты — строку, которая меняется ровно тогда, когда
-   * должен сброситься счётчик (для {@code YEARLY} — год, для {@code NEVER} — постоянная строка,
-   * никогда не меняется, значит счётчик никогда не сбрасывается).
+   * должен сброситься счётчик (для {@code DAILY} — {@code 20261001}, для {@code YEARLY} — год, для
+   * {@code NEVER} — постоянная строка, никогда не меняется, значит счётчик никогда не
+   * сбрасывается).
    */
   private String computePeriodKey(ResetPeriod resetPeriod) {
     if (resetPeriod == null) {
@@ -57,7 +59,7 @@ public class NumberGenerator {
 
     LocalDate date = LocalDate.now();
     return switch (resetPeriod) {
-      case DAILY -> date.toString();
+      case DAILY -> date.format(DateTimeFormatter.BASIC_ISO_DATE);
       case WEEKLY -> date.getYear() + "-W" + date.getDayOfYear() / 7;
       case MONTHLY -> String.format("%04d-%02d", date.getYear(), date.getMonthValue());
       case YEARLY -> String.valueOf(date.getYear());

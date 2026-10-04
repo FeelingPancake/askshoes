@@ -1,0 +1,700 @@
+### Регрессионный набор приёмки заказа (рефакторинг OrderService)
+#
+# Запуск: IntelliJ HTTP Client, окружение `local`, «Run All Requests in File».
+# Логин/пароль — в http-client.private.env.json (см. *.example рядом, файл не коммитится).
+#
+# Справочники в БД пустые (seed создаёт только типы), поэтому блок 0 заводит позиции.
+# Коды получают суффикс прогона {{run}} — файл можно гонять повторно; позиции копятся в БД.
+#
+# Ожидаемые значения сняты с поведения ДО рефакторинга. Единственный заведомо красный
+# тест — помеченный [БАГ]: он станет зелёным, когда ошибки перестанут перезаписываться.
+
+### 0.0 Логин
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{"username": "{{username}}", "password": "{{password}}"}
+
+> {%
+  client.test("логин 200", () => client.assert(response.status === 200, "status " + response.status));
+  client.global.set("token", response.body.token);
+  const run = Date.now().toString();
+  client.global.set("run", run);
+  // 11 цифр с ведущей 8 → нормализуется в 79XXXXXXXXX
+  client.global.set("phoneRaw", "8 (9" + run.slice(-9, -7) + ") " + run.slice(-7));
+  client.global.set("phone8", "89" + run.slice(-9));
+  client.global.set("phoneNorm", "79" + run.slice(-9));
+  client.global.set("phoneTail", run.slice(-7));
+%}
+
+### 0.1 ITEM_CATEGORY: обувь
+POST {{host}}/api/refs/ITEM_CATEGORY
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{"code": "T{{run}}_SHOES", "name": "Обувь {{run}}", "active": true, "sortOrder": 1}
+
+> {% client.test("200", () => client.assert(response.status === 200)); client.global.set("cat_shoes", response.body.id); %}
+
+### 0.2 ITEM_CATEGORY: сумки
+POST {{host}}/api/refs/ITEM_CATEGORY
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{"code": "T{{run}}_BAGS", "name": "Сумки {{run}}", "active": true, "sortOrder": 2}
+
+> {% client.test("200", () => client.assert(response.status === 200)); client.global.set("cat_bags", response.body.id); %}
+
+### 0.3 ITEM_SIZE: 42 из обувной сетки
+POST {{host}}/api/refs/ITEM_SIZE
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{"code": "T{{run}}_SHOES_RU_42", "name": "42", "active": true, "sortOrder": 1,
+ "attributes": {"gridCode": "T{{run}}_SHOES_RU"}}
+
+> {% client.test("200", () => client.assert(response.status === 200)); client.global.set("size_42", response.body.id); %}
+
+### 0.4 ITEM_SIZE: M из одёжной сетки
+POST {{host}}/api/refs/ITEM_SIZE
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{"code": "T{{run}}_CLOTHES_M", "name": "M", "active": true, "sortOrder": 2,
+ "attributes": {"gridCode": "T{{run}}_CLOTHES"}}
+
+> {% client.test("200", () => client.assert(response.status === 200)); client.global.set("size_m", response.body.id); %}
+
+### 0.5 ITEM_TYPE: ботинки (обувь, обувная сетка)
+POST {{host}}/api/refs/ITEM_TYPE
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{"code": "T{{run}}_BOOTS", "name": "Ботинки", "active": true, "sortOrder": 1,
+ "attributes": {"categoryCode": "T{{run}}_SHOES", "sizeGrid": "T{{run}}_SHOES_RU"}}
+
+> {% client.test("200", () => client.assert(response.status === 200)); client.global.set("type_boots", response.body.id); %}
+
+### 0.6 ITEM_TYPE: сумка (сумки, без сетки)
+POST {{host}}/api/refs/ITEM_TYPE
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{"code": "T{{run}}_BAG", "name": "Сумка", "active": true, "sortOrder": 2,
+ "attributes": {"categoryCode": "T{{run}}_BAGS"}}
+
+> {% client.test("200", () => client.assert(response.status === 200)); client.global.set("type_bag", response.body.id); %}
+
+### 0.7 BRAND: гарантийный
+POST {{host}}/api/refs/BRAND
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{"code": "T{{run}}_WARRANTY", "name": "Гарантийный", "active": true, "sortOrder": 1,
+ "attributes": {"warranty": true}}
+
+> {% client.test("200", () => client.assert(response.status === 200)); client.global.set("brand_warranty", response.body.id); %}
+
+### 0.8 BRAND: обычный
+POST {{host}}/api/refs/BRAND
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{"code": "T{{run}}_PLAIN", "name": "Обычный", "active": true, "sortOrder": 2}
+
+> {% client.test("200", () => client.assert(response.status === 200)); client.global.set("brand_plain", response.body.id); %}
+
+### 0.9 COLOR
+POST {{host}}/api/refs/COLOR
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{"code": "T{{run}}_BLACK", "name": "Чёрный", "active": true, "sortOrder": 1}
+
+> {% client.test("200", () => client.assert(response.status === 200)); client.global.set("color", response.body.id); %}
+
+### 0.10 MATERIAL
+POST {{host}}/api/refs/MATERIAL
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{"code": "T{{run}}_LEATHER", "name": "Кожа", "active": true, "sortOrder": 1}
+
+> {% client.test("200", () => client.assert(response.status === 200)); client.global.set("material", response.body.id); %}
+
+### 0.11 SERVICE_TYPE: каблук
+POST {{host}}/api/refs/SERVICE_TYPE
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{"code": "T{{run}}_HEEL", "name": "Замена набойки", "active": true, "sortOrder": 1,
+ "attributes": {"price": 1500}}
+
+> {% client.test("200", () => client.assert(response.status === 200)); client.global.set("svc_heel", response.body.id); %}
+
+### 0.12 SERVICE_TYPE: чистка
+POST {{host}}/api/refs/SERVICE_TYPE
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{"code": "T{{run}}_CLEAN", "name": "Чистка", "active": true, "sortOrder": 2,
+ "attributes": {"price": 800}}
+
+> {% client.test("200", () => client.assert(response.status === 200)); client.global.set("svc_clean", response.body.id); %}
+
+### 0.13 DEFECT_TYPE: потёртость
+POST {{host}}/api/refs/DEFECT_TYPE
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{"code": "T{{run}}_SCUFF", "name": "Потёртость", "active": true, "sortOrder": 1}
+
+> {% client.test("200", () => client.assert(response.status === 200)); client.global.set("def_scuff", response.body.id); %}
+
+### 0.14 DEFECT_TYPE: трещина
+POST {{host}}/api/refs/DEFECT_TYPE
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{"code": "T{{run}}_CRACK", "name": "Трещина", "active": true, "sortOrder": 2}
+
+> {% client.test("200", () => client.assert(response.status === 200)); client.global.set("def_crack", response.body.id); %}
+
+### 0.15 CLIENT_SOURCE
+POST {{host}}/api/refs/CLIENT_SOURCE
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{"code": "T{{run}}_WALKIN", "name": "Пришёл сам", "active": true, "sortOrder": 1}
+
+> {% client.test("200", () => client.assert(response.status === 200)); client.global.set("src", response.body.id); %}
+
+### 0.16 CONTACT_METHOD
+POST {{host}}/api/refs/CONTACT_METHOD
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{"code": "T{{run}}_PHONE", "name": "Телефон", "active": true, "sortOrder": 1}
+
+> {% client.test("200", () => client.assert(response.status === 200)); client.global.set("cm_phone", response.body.id); %}
+
+### 0.17 CLIENT_STATUS: постоянный, скидка 10%
+POST {{host}}/api/refs/CLIENT_STATUS
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{"code": "T{{run}}_REGULAR", "name": "Постоянный", "active": true, "sortOrder": 1,
+ "attributes": {"discountPercent": 10}}
+
+> {% client.test("200", () => client.assert(response.status === 200)); client.global.set("st_regular", response.body.id); %}
+
+
+### ============================================================ A. Создание
+### A1 Создание: 2 изделия, гарантия обнуляет работы, скидка 10%
+# изделие 1: 1500 + 800 = 2300; изделие 2 (гарантия): 0
+# worksTotal 2300, скидка 230.00, total 2070.00, оплачено 1000 → к оплате 1070.00
+POST {{host}}/api/orders
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "client": {
+    "fullName": "Регресс Тест", "phone": "{{phoneRaw}}", "address": "ул. Тестовая, 1",
+    "login": "@regress", "sourceId": "{{src}}", "statusId": "{{st_regular}}",
+    "contactMethodIds": ["{{cm_phone}}"]
+  },
+  "dueDate": "2026-12-01", "note": "регресс", "paidAmount": 1000,
+  "items": [
+    {
+      "categoryId": "{{cat_shoes}}", "itemTypeId": "{{type_boots}}", "brandId": "{{brand_plain}}",
+      "warranty": false, "colorId": "{{color}}", "materialId": "{{material}}", "sizeId": "{{size_42}}",
+      "wearPercent": 30, "comment": "левый каблук",
+      "defectTypeIds": ["{{def_scuff}}", "{{def_crack}}"],
+      "works": [
+        {"serviceTypeId": "{{svc_heel}}", "price": 1500},
+        {"serviceTypeId": "{{svc_clean}}", "price": 800}
+      ]
+    },
+    {
+      "categoryId": "{{cat_bags}}", "itemTypeId": "{{type_bag}}", "brandId": "{{brand_warranty}}",
+      "warranty": true,
+      "works": [{"serviceTypeId": "{{svc_clean}}", "price": 800}]
+    }
+  ]
+}
+
+> {%
+  const b = response.body;
+  client.test("201", () => client.assert(response.status === 201, "status " + response.status));
+  client.test("статус NEW", () => client.assert(b.status.code === "NEW", b.status.code));
+  client.test("клиент: телефон нормализован", () => client.assert(b.client.phone === client.global.get("phoneNorm"), b.client.phone));
+  client.test("2 изделия", () => client.assert(b.itemsCount === 2 && b.items.length === 2));
+  client.test("worksTotal 2300", () => client.assert(b.worksTotal == 2300, b.worksTotal));
+  client.test("скидка 10% = 230", () => client.assert(b.discountPercent == 10 && b.discountAmount == 230, b.discountAmount));
+  client.test("total 2070", () => client.assert(b.total == 2070, b.total));
+  client.test("к оплате 1070", () => client.assert(b.amountDue == 1070, b.amountDue));
+  client.test("изделие 1: 2300, seqNo 1, номер", () => client.assert(
+      b.items[0].worksTotal == 2300 && b.items[0].seqNo === 1 && b.items[0].number === b.number + "-1/2"));
+  client.test("изделие 1: 2 повреждения", () => client.assert(b.items[0].defectTypeIds.length === 2));
+  client.test("изделие 2 (гарантия): работы по 0", () => client.assert(
+      b.items[1].worksTotal == 0 && b.items[1].works[0].total == 0 && b.items[1].works[0].price == 800));
+  client.global.set("order_id", b.id);
+  client.global.set("order_number", b.number);
+  client.global.set("item1_id", b.items[0].id);
+  client.global.set("item2_id", b.items[1].id);
+  client.global.set("item1_heel_id", b.items[0].works.find(w => w.serviceTypeId === client.global.get("svc_heel")).id);
+%}
+
+### A2 Чтение по id
+GET {{host}}/api/orders/{{order_id}}
+Authorization: Bearer {{token}}
+
+> {%
+  const b = response.body;
+  client.test("200", () => client.assert(response.status === 200));
+  client.test("суммы как при создании", () => client.assert(b.total == 2070 && b.amountDue == 1070));
+%}
+
+### A3 Список: поиск по номеру
+GET {{host}}/api/orders?search={{order_number}}
+Authorization: Bearer {{token}}
+
+> {%
+  const rows = response.body.content;
+  client.test("200", () => client.assert(response.status === 200));
+  const row = rows.find(r => r.id === client.global.get("order_id"));
+  client.test("заказ найден по номеру", () => client.assert(row !== undefined));
+  client.test("строка списка: клиент, статус, суммы", () => client.assert(
+      row.clientName === "Регресс Тест" && row.statusName === "Новый" && row.total == 2070 && row.itemsCount === 2));
+%}
+
+### A4 Список: поиск по 7 последним цифрам телефона
+# Поиск — LIKE по цифрам в нормализованном 7XXXXXXXXXX, поэтому «8…» целиком не найдётся — только хвост.
+GET {{host}}/api/orders?search={{phoneTail}}
+Authorization: Bearer {{token}}
+
+> {%
+  client.test("заказ найден по хвосту телефона", () => client.assert(
+      response.body.content.some(r => r.id === client.global.get("order_id"))));
+%}
+
+### A5 Клиент по телефону (8XXXXXXXXXX → 7XXXXXXXXXX)
+GET {{host}}/api/clients/by-phone?phone={{phone8}}
+Authorization: Bearer {{token}}
+
+> {%
+  const b = response.body;
+  client.test("200", () => client.assert(response.status === 200));
+  client.test("поля клиента", () => client.assert(
+      b.phone === client.global.get("phoneNorm") && b.statusId === client.global.get("st_regular")
+      && b.contactMethodIds.length === 1));
+%}
+
+
+### ============================================================ U. Обновление
+### U1 Обновление: изделие 1 меняется, изделие 2 удаляется, изделие 3 добавляется
+# изделие 1: каблук 2000 (тот же id) + новая чистка 800 = 2800, повреждения → только трещина
+# изделие 3: чистка 800, без гарантии
+# worksTotal 3600, скидка 360.00, total 3240.00, к оплате 2240.00
+PUT {{host}}/api/orders/{{order_id}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "client": {
+    "fullName": "Регресс Тест", "phone": "{{phoneRaw}}", "sourceId": "{{src}}",
+    "statusId": "{{st_regular}}", "contactMethodIds": ["{{cm_phone}}"]
+  },
+  "dueDate": "2026-12-05", "note": "обновлён", "paidAmount": 1000,
+  "items": [
+    {
+      "id": "{{item1_id}}",
+      "categoryId": "{{cat_shoes}}", "itemTypeId": "{{type_boots}}", "brandId": "{{brand_plain}}",
+      "warranty": false, "colorId": "{{color}}", "materialId": "{{material}}", "sizeId": "{{size_42}}",
+      "wearPercent": 40,
+      "defectTypeIds": ["{{def_crack}}"],
+      "works": [
+        {"id": "{{item1_heel_id}}", "serviceTypeId": "{{svc_heel}}", "price": 2000},
+        {"serviceTypeId": "{{svc_clean}}", "price": 800}
+      ]
+    },
+    {
+      "categoryId": "{{cat_bags}}", "itemTypeId": "{{type_bag}}", "brandId": "{{brand_plain}}",
+      "warranty": false,
+      "works": [{"serviceTypeId": "{{svc_clean}}", "price": 800}]
+    }
+  ]
+}
+
+> {%
+  const b = response.body;
+  const g = k => client.global.get(k);
+  client.test("200", () => client.assert(response.status === 200, "status " + response.status));
+  const item1 = b.items.find(i => i.id === g("item1_id"));
+  const item3 = b.items.find(i => i.id !== g("item1_id"));
+  client.test("2 изделия", () => client.assert(b.itemsCount === 2 && b.items.length === 2));
+  client.test("изделие 1 сохранило id и seqNo 1", () => client.assert(item1 && item1.seqNo === 1));
+  client.test("изделие 2 удалено", () => client.assert(!b.items.some(i => i.id === g("item2_id"))));
+  client.test("новое изделие получило seqNo 2", () => client.assert(item3 && item3.seqNo === 2 && item3.number === b.number + "-2/2"));
+  client.test("каблук: тот же id, цена 2000", () => {
+    const heel = item1.works.find(w => w.id === g("item1_heel_id"));
+    client.assert(heel && heel.price == 2000 && heel.total == 2000);
+  });
+  client.test("изделие 1: 2 работы, 2800", () => client.assert(item1.works.length === 2 && item1.worksTotal == 2800));
+  client.test("изделие 1: осталась только трещина", () => client.assert(
+      item1.defectTypeIds.length === 1 && item1.defectTypeIds[0] === g("def_crack")));
+  client.test("изделие 3: 800", () => client.assert(item3.worksTotal == 800));
+  client.test("итоги 3600 / 360 / 3240 / 2240", () => client.assert(
+      b.worksTotal == 3600 && b.discountAmount == 360 && b.total == 3240 && b.amountDue == 2240,
+      [b.worksTotal, b.discountAmount, b.total, b.amountDue].join(" / ")));
+  client.test("note и dueDate обновлены", () => client.assert(b.note === "обновлён" && b.dueDate === "2026-12-05"));
+  client.global.set("item3_id", item3.id);
+  client.global.set("item3_clean_id", item3.works[0].id);
+%}
+
+
+### ============================================================ E. Ошибки создания
+### E1 Несуществующая позиция справочника
+POST {{host}}/api/orders
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "client": {"fullName": "Регресс Тест", "phone": "{{phoneRaw}}"},
+  "items": [{
+    "categoryId": "{{cat_shoes}}", "itemTypeId": "{{type_boots}}", "warranty": false,
+    "colorId": "{{$uuid}}",
+    "works": [{"serviceTypeId": "{{svc_heel}}", "price": 1500}]
+  }]
+}
+
+> {%
+  const b = typeof response.body === "string" ? JSON.parse(response.body) : response.body;
+  client.test("400", () => client.assert(response.status === 400, "status " + response.status));
+  client.test("items[0].colorId", () => client.assert(
+      b.errors["items[0].colorId"] === "Нет такой позиции в справочнике COLOR", JSON.stringify(b.errors)));
+%}
+
+### E2 Позиция из другого справочника (цвет вместо бренда)
+POST {{host}}/api/orders
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "client": {"fullName": "Регресс Тест", "phone": "{{phoneRaw}}"},
+  "items": [{
+    "categoryId": "{{cat_shoes}}", "itemTypeId": "{{type_boots}}", "warranty": false,
+    "brandId": "{{color}}",
+    "works": [{"serviceTypeId": "{{svc_heel}}", "price": 1500}]
+  }]
+}
+
+> {%
+  const b = typeof response.body === "string" ? JSON.parse(response.body) : response.body;
+  client.test("400", () => client.assert(response.status === 400, "status " + response.status));
+  client.test("items[0].brandId", () => client.assert(
+      b.errors["items[0].brandId"] === "Нет такой позиции в справочнике BRAND", JSON.stringify(b.errors)));
+%}
+
+### E3 Тип изделия не из выбранной категории (сумки + ботинки)
+POST {{host}}/api/orders
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "client": {"fullName": "Регресс Тест", "phone": "{{phoneRaw}}"},
+  "items": [{
+    "categoryId": "{{cat_bags}}", "itemTypeId": "{{type_boots}}", "warranty": false,
+    "works": [{"serviceTypeId": "{{svc_heel}}", "price": 1500}]
+  }]
+}
+
+> {%
+  const b = typeof response.body === "string" ? JSON.parse(response.body) : response.body;
+  client.test("400", () => client.assert(response.status === 400, "status " + response.status));
+  client.test("items[0].itemTypeId", () => client.assert(
+      b.errors["items[0].itemTypeId"] === "Тип изделия не относится к выбранной категории", JSON.stringify(b.errors)));
+%}
+
+### E4 Размер у типа без сетки (сумка + 42)
+POST {{host}}/api/orders
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "client": {"fullName": "Регресс Тест", "phone": "{{phoneRaw}}"},
+  "items": [{
+    "categoryId": "{{cat_bags}}", "itemTypeId": "{{type_bag}}", "warranty": false,
+    "sizeId": "{{size_42}}",
+    "works": [{"serviceTypeId": "{{svc_clean}}", "price": 800}]
+  }]
+}
+
+> {%
+  const b = typeof response.body === "string" ? JSON.parse(response.body) : response.body;
+  client.test("400", () => client.assert(response.status === 400, "status " + response.status));
+  client.test("items[0].sizeId", () => client.assert(
+      b.errors["items[0].sizeId"] === "У этого типа изделия нет размера", JSON.stringify(b.errors)));
+%}
+
+### E5 Размер из чужой сетки (ботинки + M)
+POST {{host}}/api/orders
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "client": {"fullName": "Регресс Тест", "phone": "{{phoneRaw}}"},
+  "items": [{
+    "categoryId": "{{cat_shoes}}", "itemTypeId": "{{type_boots}}", "warranty": false,
+    "sizeId": "{{size_m}}",
+    "works": [{"serviceTypeId": "{{svc_heel}}", "price": 1500}]
+  }]
+}
+
+> {%
+  const b = typeof response.body === "string" ? JSON.parse(response.body) : response.body;
+  client.test("400", () => client.assert(response.status === 400, "status " + response.status));
+  client.test("items[0].sizeId", () => client.assert(
+      b.errors["items[0].sizeId"] === "Размер не из сетки этого типа изделия", JSON.stringify(b.errors)));
+%}
+
+### E6 Гарантия у негарантийного бренда
+POST {{host}}/api/orders
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "client": {"fullName": "Регресс Тест", "phone": "{{phoneRaw}}"},
+  "items": [{
+    "categoryId": "{{cat_shoes}}", "itemTypeId": "{{type_boots}}", "brandId": "{{brand_plain}}",
+    "warranty": true,
+    "works": [{"serviceTypeId": "{{svc_heel}}", "price": 1500}]
+  }]
+}
+
+> {%
+  const b = typeof response.body === "string" ? JSON.parse(response.body) : response.body;
+  client.test("400", () => client.assert(response.status === 400, "status " + response.status));
+  client.test("items[0].warranty", () => client.assert(
+      b.errors["items[0].warranty"] === "Гарантия возможна только для гарантийного бренда", JSON.stringify(b.errors)));
+%}
+
+### E7 Неверный телефон
+POST {{host}}/api/orders
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "client": {"fullName": "Регресс Тест", "phone": "123"},
+  "items": [{
+    "categoryId": "{{cat_shoes}}", "itemTypeId": "{{type_boots}}", "warranty": false,
+    "works": [{"serviceTypeId": "{{svc_heel}}", "price": 1500}]
+  }]
+}
+
+> {%
+  const b = typeof response.body === "string" ? JSON.parse(response.body) : response.body;
+  client.test("400", () => client.assert(response.status === 400, "status " + response.status));
+  client.test("client.phone", () => client.assert(
+      b.errors["client.phone"] === "Телефон должен содержать 10 или 11 цифр", JSON.stringify(b.errors)));
+%}
+
+### E8 Новый заказ с id изделия
+POST {{host}}/api/orders
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "client": {"fullName": "Регресс Тест", "phone": "{{phoneRaw}}"},
+  "items": [{
+    "id": "{{item1_id}}",
+    "categoryId": "{{cat_shoes}}", "itemTypeId": "{{type_boots}}", "warranty": false,
+    "works": [{"serviceTypeId": "{{svc_heel}}", "price": 1500}]
+  }]
+}
+
+> {%
+  const b = typeof response.body === "string" ? JSON.parse(response.body) : response.body;
+  client.test("400", () => client.assert(response.status === 400, "status " + response.status));
+  client.test("items[0].id", () => client.assert(
+      b.errors["items[0].id"] === "У нового заказа не может быть существующих изделий", JSON.stringify(b.errors)));
+%}
+
+### E9 Оплачено больше итога (1500 − 10% = 1350 < 5000)
+POST {{host}}/api/orders
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "client": {"fullName": "Регресс Тест", "phone": "{{phoneRaw}}", "statusId": "{{st_regular}}"},
+  "paidAmount": 5000,
+  "items": [{
+    "categoryId": "{{cat_shoes}}", "itemTypeId": "{{type_boots}}", "warranty": false,
+    "works": [{"serviceTypeId": "{{svc_heel}}", "price": 1500}]
+  }]
+}
+
+> {%
+  const b = typeof response.body === "string" ? JSON.parse(response.body) : response.body;
+  client.test("400", () => client.assert(response.status === 400, "status " + response.status));
+  client.test("paidAmount", () => client.assert(
+      b.errors["paidAmount"] === "Оплачено больше суммы заказа", JSON.stringify(b.errors)));
+%}
+
+### E10 Несколько ошибок сразу — все и в порядке полей формы
+POST {{host}}/api/orders
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "client": {"fullName": "Регресс Тест", "phone": "123", "contactMethodIds": ["{{$uuid}}"]},
+  "items": [{
+    "categoryId": "{{cat_shoes}}", "itemTypeId": "{{type_boots}}", "brandId": "{{brand_plain}}",
+    "warranty": true, "colorId": "{{$uuid}}",
+    "works": [{"serviceTypeId": "{{$uuid}}", "price": 1500}]
+  }]
+}
+
+> {%
+  const b = typeof response.body === "string" ? JSON.parse(response.body) : response.body;
+  client.test("400", () => client.assert(response.status === 400, "status " + response.status));
+  const expected = [
+    "client.phone",
+    "client.contactMethodIds[0]",
+    "items[0].colorId",
+    "items[0].warranty",
+    "items[0].works[0].serviceTypeId"
+  ];
+  client.test("все 5 ошибок в порядке полей", () => client.assert(
+      JSON.stringify(Object.keys(b.errors)) === JSON.stringify(expected), JSON.stringify(Object.keys(b.errors))));
+%}
+
+### E11 [БАГ] Несуществующий размер у типа без сетки — должна остаться первая, точная ошибка
+# Сейчас errors.put перезаписывает «Нет такой позиции…» на «У этого типа изделия нет размера».
+# Тест красный до исправления (putIfAbsent в OrderValidation), затем должен стать зелёным.
+POST {{host}}/api/orders
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "client": {"fullName": "Регресс Тест", "phone": "{{phoneRaw}}"},
+  "items": [{
+    "categoryId": "{{cat_bags}}", "itemTypeId": "{{type_bag}}", "warranty": false,
+    "sizeId": "{{$uuid}}",
+    "works": [{"serviceTypeId": "{{svc_clean}}", "price": 800}]
+  }]
+}
+
+> {%
+  const b = typeof response.body === "string" ? JSON.parse(response.body) : response.body;
+  client.test("400", () => client.assert(response.status === 400, "status " + response.status));
+  client.test("[БАГ] items[0].sizeId — первая ошибка не перезаписана", () => client.assert(
+      b.errors["items[0].sizeId"] === "Нет такой позиции в справочнике ITEM_SIZE", b.errors["items[0].sizeId"]));
+%}
+
+### E12 Bean Validation: пустой список изделий
+POST {{host}}/api/orders
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "client": {"fullName": "Регресс Тест", "phone": "{{phoneRaw}}"},
+  "items": []
+}
+
+> {%
+  const b = typeof response.body === "string" ? JSON.parse(response.body) : response.body;
+  client.test("400", () => client.assert(response.status === 400, "status " + response.status));
+  client.test("ошибка по items", () => client.assert("items" in b.errors, JSON.stringify(b.errors)));
+%}
+
+
+### ============================================================ P. Ошибки обновления
+### P1 Изделие не из этого заказа
+PUT {{host}}/api/orders/{{order_id}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "client": {"fullName": "Регресс Тест", "phone": "{{phoneRaw}}"},
+  "items": [{
+    "id": "{{$uuid}}",
+    "categoryId": "{{cat_shoes}}", "itemTypeId": "{{type_boots}}", "warranty": false,
+    "works": [{"serviceTypeId": "{{svc_heel}}", "price": 1500}]
+  }]
+}
+
+> {%
+  const b = typeof response.body === "string" ? JSON.parse(response.body) : response.body;
+  client.test("400", () => client.assert(response.status === 400, "status " + response.status));
+  client.test("items[0].id", () => client.assert(
+      b.errors["items[0].id"] === "Изделие не найдено в этом заказе", JSON.stringify(b.errors)));
+%}
+
+### P2 Одно изделие дважды
+PUT {{host}}/api/orders/{{order_id}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "client": {"fullName": "Регресс Тест", "phone": "{{phoneRaw}}"},
+  "items": [
+    {"id": "{{item1_id}}", "categoryId": "{{cat_shoes}}", "itemTypeId": "{{type_boots}}", "warranty": false},
+    {"id": "{{item1_id}}", "categoryId": "{{cat_shoes}}", "itemTypeId": "{{type_boots}}", "warranty": false}
+  ]
+}
+
+> {%
+  const b = typeof response.body === "string" ? JSON.parse(response.body) : response.body;
+  client.test("400", () => client.assert(response.status === 400, "status " + response.status));
+  client.test("items[1].id", () => client.assert(
+      b.errors["items[1].id"] === "Изделие указано в запросе дважды", JSON.stringify(b.errors)));
+%}
+
+### P3 Работа чужого изделия
+PUT {{host}}/api/orders/{{order_id}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "client": {"fullName": "Регресс Тест", "phone": "{{phoneRaw}}"},
+  "items": [
+    {
+      "id": "{{item1_id}}", "categoryId": "{{cat_shoes}}", "itemTypeId": "{{type_boots}}", "warranty": false,
+      "works": [{"id": "{{item3_clean_id}}", "serviceTypeId": "{{svc_clean}}", "price": 800}]
+    },
+    {
+      "id": "{{item3_id}}", "categoryId": "{{cat_bags}}", "itemTypeId": "{{type_bag}}", "warranty": false
+    }
+  ]
+}
+
+> {%
+  const b = typeof response.body === "string" ? JSON.parse(response.body) : response.body;
+  client.test("400", () => client.assert(response.status === 400, "status " + response.status));
+  client.test("items[0].works[0].id", () => client.assert(
+      b.errors["items[0].works[0].id"] === "Работа не найдена у этого изделия", JSON.stringify(b.errors)));
+%}
+
+### P4 Несуществующий заказ
+PUT {{host}}/api/orders/{{$uuid}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "client": {"fullName": "Регресс Тест", "phone": "{{phoneRaw}}"},
+  "items": [{"categoryId": "{{cat_shoes}}", "itemTypeId": "{{type_boots}}", "warranty": false}]
+}
+
+> {% client.test("404", () => client.assert(response.status === 404, "status " + response.status)); %}
+
+### P5 После неудачных PUT заказ не изменился
+GET {{host}}/api/orders/{{order_id}}
+Authorization: Bearer {{token}}
+
+> {%
+  const b = response.body;
+  client.test("200", () => client.assert(response.status === 200));
+  client.test("состояние после U1", () => client.assert(
+      b.itemsCount === 2 && b.total == 3240 && b.amountDue == 2240 && b.note === "обновлён"));
+%}
