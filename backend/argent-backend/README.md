@@ -9,8 +9,8 @@
   `ArgentExceptionHandler` (единый формат ошибок, RFC 7807); `ValidationErrorsException` — ручная
   валидация с ответом 400 в том же формате, что и `@Valid`.
 - **`com.atomskills.argent.user`** — пользователи ядра (`krn_user`).
-- **`com.atomskills.argent.auth`** — пароли, сессии, выдача JWT (`krn_user_auth`,
-  `krn_user_session`, `POST /api/auth/login`).
+- **`com.atomskills.argent.auth`** — пароли, сессии, выдача JWT, регистрация (`krn_user_auth`,
+  `krn_user_session`, `POST /api/auth/login`, `POST /api/auth/register`).
 - **`com.atomskills.argent.security`** — роли (`krn_role`, `krn_user_role`), проверка JWT на
   каждом запросе (default-deny).
 - **`com.atomskills.argent.reference`** — универсальный справочник (`krn_ref_type`,
@@ -61,9 +61,19 @@
 
 ## Как устроено
 
-**Безопасность.** `/api/auth/login` открыт, всё остальное требует валидного Bearer JWT с
-неотозванной сессией (`revoked` проверяется на каждом запросе). Роли пользователя подгружаются в
-`Authentication` как `ROLE_<name>`.
+**Безопасность.** `/api/auth/login` и `/api/auth/register` открыты, всё остальное требует
+валидного Bearer JWT с неотозванной сессией (`revoked` проверяется на каждом запросе). Роли
+пользователя подгружаются в `Authentication` как `ROLE_<name>`.
+
+**Регистрация.** Выключена по умолчанию (`403`), включается в приложении:
+
+```yaml
+argent:
+  auth:
+    registration:
+      enabled: true
+      default-roles: [ADMIN]   # имена krn_role.name без ROLE_; отсутствующие создаются
+```
 
 **Списки.** Фильтры и пагинация — `Specification` + `Pageable` из Spring Data JPA прямо в
 контроллере (образец — `ReferenceController.list`). Общего базового класса CRUD нет.
@@ -100,7 +110,9 @@
   таблицы.
 - RSA-ключ для JWT генерируется при каждом старте — после перезапуска все токены недействительны.
 - CORS жёстко настроен на `http://localhost:4200`.
-- `/api/test/**` открыт без токена — временно, пока нет seed-миграции с первым администратором.
+- `/api/test/**` открыт без токена — временно; закрыть вместе с удалением `TestRestController`.
+- При `default-roles: [ADMIN]` администратором становится каждый зарегистрировавшийся; управления
+  пользователями (сброс пароля, роли) пока нет.
 - `ReferenceController.update`/`delete` не проверяют, что `itemId` принадлежит справочнику с
   указанным `code`.
 - `AttachmentController` не проверяет права на конкретную сущность и доверяет `Content-Type`

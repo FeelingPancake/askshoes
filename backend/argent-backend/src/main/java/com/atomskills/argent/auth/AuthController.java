@@ -3,44 +3,38 @@ package com.atomskills.argent.auth;
 import com.atomskills.argent.user.User;
 import com.atomskills.argent.user.UserRepository;
 import jakarta.validation.Valid;
-import java.time.Instant;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
-import org.springframework.security.oauth2.jwt.JwsHeader;
-import org.springframework.security.oauth2.jwt.JwtClaimsSet;
-import org.springframework.security.oauth2.jwt.JwtEncoder;
-import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-/** Единственная точка входа модуля аутентификации: {@code POST /api/auth/login}. */
+/**
+ * Точки входа модуля аутентификации: {@code POST /api/auth/login} и {@code POST
+ * /api/auth/register}.
+ */
 @RestController
 public class AuthController {
   private final UserRepository userRepository;
   private final UserAuthRepository userAuthRepository;
   private final PasswordEncoder passwordEncoder;
-  private final UserSessionRepository userSessionRepository;
-  private final JwtEncoder jwtEncoder;
+  private final TokenService tokenService;
+  private final RegistrationService registrationService;
 
   public AuthController(
       UserRepository userRepository,
       UserAuthRepository userAuthRepository,
       PasswordEncoder passwordEncoder,
-      UserSessionRepository userSessionRepository,
-      JwtEncoder jwtEncoder) {
+      TokenService tokenService,
+      RegistrationService registrationService) {
     this.userRepository = userRepository;
     this.userAuthRepository = userAuthRepository;
     this.passwordEncoder = passwordEncoder;
-    this.userSessionRepository = userSessionRepository;
-    this.jwtEncoder = jwtEncoder;
+    this.tokenService = tokenService;
+    this.registrationService = registrationService;
   }
 
   /**
-   * Проверяет логин/пароль, создаёт новую {@link UserSession} (по умолчанию на 30 дней, см. {@link
-   * UserSession#prePersist()}) и выдаёт подписанный JWT (claims: {@code sub} — id пользователя,
-   * {@code sessionId} — id созданной сессии, {@code username} — логин, для журнала аудита).
+   * Проверяет логин/пароль и выдаёт токен через {@link TokenService#issue(User)}.
    *
    * @param request логин и пароль
    * @return токен для заголовка {@code Authorization: Bearer <token>}
@@ -60,25 +54,27 @@ public class AuthController {
     if (!passwordEncoder.matches(request.password(), userAuth.getPasswordHash())) {
       throw new BadCredentialsException("Invalid username or password");
     }
-    UserSession userSession = new UserSession();
-    userSession.setUserId(user.getId());
-    userSessionRepository.save(userSession);
-
-    Instant now = Instant.now();
-
-    JwtClaimsSet claims =
-        JwtClaimsSet.builder()
-            .issuer("argent")
-            .subject(user.getId().toString())
-            .issuedAt(now)
-            .expiresAt(userSession.getExpiresAt())
-            .claim("sessionId", userSession.getId().toString())
-            .claim("username", user.getUsername())
-            .build();
-    JwsHeader header = JwsHeader.with(SignatureAlgorithm.RS256).build();
-
-    String token = jwtEncoder.encode(JwtEncoderParameters.from(header, claims)).getTokenValue();
+    String token = tokenService.issue(user);
 
     return new LoginResponse(token);
+  }
+
+  /**
+   * Регистрирует пользователя и сразу выдаёт токен — повторный логин не нужен. Подробности (роли,
+   * транзакция) — {@link RegistrationService#register(RegisterRequest)}.
+   *
+   * <p>Путь открыт в {@code securityFilterChain} ({@code permitAll}) всегда; закрыта ли
+   * регистрация, решает сервис по {@code argent.auth.registration.enabled}.
+   *
+   * @param registerRequest логин, отображаемое имя, пароль
+   * @return токен для заголовка {@code Authorization: Bearer <token>}; статус 201
+   * @throws org.springframework.security.access.AccessDeniedException если регистрация выключена
+   *     (403)
+   * @throws com.atomskills.argent.error.ValidationErrorsException если логин занят (400)
+   */
+  @PostMapping("api/auth/register")
+  @ResponseStatus(HttpStatus.CREATED)
+  public LoginResponse register(@Valid @RequestBody RegisterRequest registerRequest) {
+    return new LoginResponse(registrationService.register(registerRequest));
   }
 }
