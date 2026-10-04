@@ -1,7 +1,6 @@
 package com.atomskills.askshoes.service;
 
 import com.atomskills.argent.error.ValidationErrorsException;
-import com.atomskills.argent.reference.RefItemRepository;
 import com.atomskills.argent.sequence.NumberGenerator;
 import com.atomskills.argent.status.Status;
 import com.atomskills.argent.status.StatusRepository;
@@ -17,7 +16,6 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -38,8 +36,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Приёмка заказа как одного агрегата. Каждая операция — одна транзакция: проверка запроса целиком
- * (все ошибки за один проход, до первой записи) → upsert клиента → номер → синхронизация изделий,
- * работ и повреждений → пересчёт сумм.
+ * ({@link OrderValidator}: все ошибки за один проход, до первой записи) → upsert клиента → номер →
+ * синхронизация изделий, работ и повреждений → пересчёт сумм ({@link OrderCalculator}).
  *
  * <p>{@link NumberGenerator} пишет через {@code JdbcTemplate} в том же соединении, что и JPA,
  * поэтому при любой ошибке счётчик номеров откатывается вместе с заказом.
@@ -50,12 +48,11 @@ public class OrderService {
   private static final String SEQUENCE_CODE = "ORDER";
   private static final String STATUS_TYPE_CODE = "ORDER";
   private static final String INITIAL_STATUS_CODE = "NEW";
-  private static final BigDecimal HUNDRED = BigDecimal.valueOf(100);
 
   private final OrderRepository orderRepository;
   private final ClientService clientService;
   private final OrderValidator orderValidator;
-  private final RefItemRepository refItemRepository;
+  private final OrderCalculator orderCalculator;
   private final NumberGenerator numberGenerator;
   private final StatusTypeRepository statusTypeRepository;
   private final StatusRepository statusRepository;
@@ -82,7 +79,7 @@ public class OrderService {
     order.setClient(client);
 
     apply(order, request);
-    recalc(order);
+    orderCalculator.recalc(order);
     return OrderResponse.from(orderRepository.saveAndFlush(order));
   }
 
@@ -103,7 +100,7 @@ public class OrderService {
     order.setClient(clientService.upsertByPhone(request.client()));
 
     apply(order, request);
-    recalc(order);
+    orderCalculator.recalc(order);
     return OrderResponse.from(orderRepository.saveAndFlush(order));
   }
 
@@ -296,50 +293,5 @@ public class OrderService {
         item.getDefects().add(defect);
       }
     }
-  }
-
-  // ------------------------------------------------------------------ recalc
-
-  /**
-   * Пересчитывает все суммы заказа; затем проверяет, что оплачено не больше итога.
-   *
-   * @throws ValidationErrorsException если {@code paidAmount > total}
-   */
-  private void recalc(Order order) {
-    BigDecimal worksTotal = BigDecimal.ZERO;
-    for (OrderItem item : order.getItems()) {
-      BigDecimal itemTotal = BigDecimal.ZERO;
-      for (OrderItemWork work : item.getWorks()) {
-        work.setTotal(Boolean.TRUE.equals(item.getWarranty()) ? BigDecimal.ZERO : work.getPrice());
-        itemTotal = itemTotal.add(work.getTotal());
-      }
-      item.setWorksTotal(itemTotal);
-      worksTotal = worksTotal.add(itemTotal);
-    }
-
-    BigDecimal discountPercent = discountPercent(order.getClient());
-    BigDecimal discountAmount =
-        worksTotal.multiply(discountPercent).divide(HUNDRED, 2, RoundingMode.HALF_UP);
-
-    order.setWorksTotal(worksTotal);
-    order.setDiscountPercent(discountPercent);
-    order.setDiscountAmount(discountAmount);
-    order.setTotal(worksTotal.subtract(discountAmount));
-
-    if (order.getPaidAmount().compareTo(order.getTotal()) > 0) {
-      throw new ValidationErrorsException(Map.of("paidAmount", "Оплачено больше суммы заказа"));
-    }
-  }
-
-  /** Скидка из {@code CLIENT_STATUS.attributes.discountPercent}; нет статуса или ключа — 0. */
-  private BigDecimal discountPercent(Client client) {
-    if (client.getStatusId() == null) {
-      return BigDecimal.ZERO;
-    }
-    return refItemRepository
-        .findById(client.getStatusId())
-        .map(status -> RefLookup.attribute(status, "discountPercent"))
-        .map(value -> new BigDecimal(value.toString()))
-        .orElse(BigDecimal.ZERO);
   }
 }
