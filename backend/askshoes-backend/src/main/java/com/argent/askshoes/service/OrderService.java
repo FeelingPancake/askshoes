@@ -26,7 +26,6 @@ import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -392,67 +391,101 @@ public class OrderService {
     order.setDueDate(request.dueDate());
     order.setNote(request.note());
     order.setPaidAmount(request.paidAmount() == null ? BigDecimal.ZERO : request.paidAmount());
-
-    Map<UUID, OrderItem> existing = new HashMap<>();
-    order.getItems().forEach(item -> existing.put(item.getId(), item));
-    Set<OrderItem> kept = new HashSet<>();
-
-    for (int i = 0; i < request.items().size(); i++) {
-      OrderItemRequest itemRequest = request.items().get(i);
-      OrderItem item;
-      if (itemRequest.id() == null) {
-        item = new OrderItem();
-        item.setOrder(order);
-        order.getItems().add(item);
-      } else {
-        item = existing.get(itemRequest.id());
-      }
-
-      item.setSeqNo(i + 1);
-      item.setCategoryId(itemRequest.categoryId());
-      item.setItemTypeId(itemRequest.itemTypeId());
-      item.setBrandId(itemRequest.brandId());
-      item.setWarranty(itemRequest.warranty());
-      item.setColorId(itemRequest.colorId());
-      item.setMaterialId(itemRequest.materialId());
-      item.setSizeId(itemRequest.sizeId());
-      item.setWearPercent(itemRequest.wearPercent());
-      item.setComment(itemRequest.comment());
-      syncWorks(item, itemRequest.works());
-      syncDefects(item, new LinkedHashSet<>(itemRequest.defectTypeIds()));
-      kept.add(item);
-    }
-
-    order.getItems().removeIf(item -> !kept.contains(item));
-  }
-
-  private void syncWorks(OrderItem item, List<OrderItemWorkRequest> requests) {
-    Map<UUID, OrderItemWork> existing = new HashMap<>();
-    item.getWorks().forEach(work -> existing.put(work.getId(), work));
-    Set<OrderItemWork> kept = new HashSet<>();
-
-    for (OrderItemWorkRequest request : requests) {
-      OrderItemWork work;
-      if (request.id() == null) {
-        work = new OrderItemWork();
-        work.setItem(item);
-        item.getWorks().add(work);
-      } else {
-        work = existing.get(request.id());
-      }
-      work.setServiceTypeId(request.serviceTypeId());
-      work.setPrice(request.price());
-      kept.add(work);
-    }
-
-    item.getWorks().removeIf(work -> !kept.contains(work));
+    applyItems(order, request.items());
   }
 
   /**
-   * По разнице, а не {@code clear()} + {@code add()}: Hibernate при flush выполняет INSERT раньше
-   * DELETE, и повторно добавленный тот же {@code defect_type_id} нарушил бы unique.
+   * Синхронизирует изделия заказа с запросом по {@code id}: изделия, чьих {@code id} нет в запросе,
+   * удаляются; с {@code id} — обновляются; без {@code id} — создаются. {@code seqNo} — позиция в
+   * запросе, начиная с 1.
    */
-  private void syncDefects(OrderItem item, Set<UUID> wanted) {
+  private void applyItems(Order order, List<OrderItemRequest> requests) {
+    Set<UUID> requestedIds =
+        requests.stream()
+            .map(OrderItemRequest::id)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toSet());
+
+    order.getItems().removeIf(item -> !requestedIds.contains(item.getId()));
+
+    Map<UUID, OrderItem> itemsById =
+        order.getItems().stream().collect(Collectors.toMap(OrderItem::getId, Function.identity()));
+
+    for (int i = 0; i < requests.size(); i++) {
+      OrderItemRequest request = requests.get(i);
+      // id уже проверен в validate: изделие с ним есть в этом заказе, get не вернёт null
+      OrderItem item = request.id() == null ? newItem(order) : itemsById.get(request.id());
+      fillItem(item, request, i + 1);
+    }
+  }
+
+  /** Новое изделие, привязанное к заказу с обеих сторон связи: FK и коллекция для каскада. */
+  private OrderItem newItem(Order order) {
+    OrderItem orderItem = new OrderItem();
+    orderItem.setOrder(order);
+    order.getItems().add(orderItem);
+
+    return orderItem;
+  }
+
+  /** Переносит поля запроса в изделие и синхронизирует его работы и повреждения. */
+  private void fillItem(OrderItem item, OrderItemRequest request, int seqNo) {
+    item.setSeqNo(seqNo);
+    item.setCategoryId(request.categoryId());
+    item.setItemTypeId(request.itemTypeId());
+    item.setBrandId(request.brandId());
+    item.setWarranty(request.warranty());
+    item.setColorId(request.colorId());
+    item.setMaterialId(request.materialId());
+    item.setSizeId(request.sizeId());
+    item.setWearPercent(request.wearPercent());
+    item.setComment(request.comment());
+    applyWorks(item, request.works());
+    applyDefects(item, new LinkedHashSet<>(request.defectTypeIds()));
+  }
+
+  /** Синхронизирует работы изделия по {@code id} — так же, как {@link #applyItems}. */
+  private void applyWorks(OrderItem item, List<OrderItemWorkRequest> requests) {
+    Set<UUID> requestedIds =
+        requests.stream()
+            .map(OrderItemWorkRequest::id)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toSet());
+
+    item.getWorks().removeIf(work -> !requestedIds.contains(work.getId()));
+
+    Map<UUID, OrderItemWork> worksById =
+        item.getWorks().stream()
+            .collect(Collectors.toMap(OrderItemWork::getId, Function.identity()));
+    for (OrderItemWorkRequest request : requests) {
+      // id уже проверен в validate: работа принадлежит этому изделию
+      OrderItemWork orderItemWork =
+          request.id() == null ? newOrderItemWork(item) : worksById.get(request.id());
+      fillOrderItemWork(orderItemWork, request);
+    }
+  }
+
+  /** Новая работа, привязанная к изделию с обеих сторон связи. */
+  private OrderItemWork newOrderItemWork(OrderItem orderItem) {
+    OrderItemWork orderItemWork = new OrderItemWork();
+    orderItemWork.setItem(orderItem);
+    orderItem.getWorks().add(orderItemWork);
+
+    return orderItemWork;
+  }
+
+  private void fillOrderItemWork(OrderItemWork orderItemWork, OrderItemWorkRequest workRequest) {
+    orderItemWork.setServiceTypeId(workRequest.serviceTypeId());
+    orderItemWork.setPrice(workRequest.price());
+  }
+
+  /**
+   * Синхронизирует повреждения изделия с набором {@code defect_type_id} из запроса.
+   *
+   * <p>По разнице, а не {@code clear()} + {@code add()}: Hibernate при flush выполняет INSERT
+   * раньше DELETE, и повторно добавленный тот же {@code defect_type_id} нарушил бы unique.
+   */
+  private void applyDefects(OrderItem item, Set<UUID> wanted) {
     item.getDefects().removeIf(defect -> !wanted.contains(defect.getDefectTypeId()));
 
     Set<UUID> present =
