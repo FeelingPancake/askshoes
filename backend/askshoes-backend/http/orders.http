@@ -7,8 +7,8 @@
 # Каждый прогон регистрирует своего пользователя t{{run}}, а коды справочников получают
 # суффикс {{run}} — файл можно гонять повторно; пользователи и позиции копятся в БД.
 #
-# Ожидаемые значения сняты с поведения ДО рефакторинга. Единственный заведомо красный
-# тест — помеченный [БАГ]: он станет зелёным, когда ошибки перестанут перезаписываться.
+# Ожидаемые значения сняты с поведения ДО рефакторинга; единственное намеренное изменение —
+# E11 (первая ошибка по полю больше не перезаписывается). Весь файл должен быть зелёным.
 
 ### 0.0 Подготовка: переменные прогона (открытый эндпоинт — только ради обработчика)
 GET {{host}}/v3/api-docs
@@ -576,9 +576,9 @@ Content-Type: application/json
       JSON.stringify(Object.keys(b.errors)) === JSON.stringify(expected), JSON.stringify(Object.keys(b.errors))));
 %}
 
-### E11 [БАГ] Несуществующий размер у типа без сетки — должна остаться первая, точная ошибка
-# Сейчас errors.put перезаписывает «Нет такой позиции…» на «У этого типа изделия нет размера».
-# Тест красный до исправления (putIfAbsent в OrderValidation), затем должен стать зелёным.
+### E11 Несуществующий размер у типа без сетки — остаётся первая, точная ошибка
+# Обе проверки пишут в items[0].sizeId; OrderValidation.error (putIfAbsent) оставляет первую —
+# «Нет такой позиции…», а не «У этого типа изделия нет размера». До рефакторинга было наоборот.
 POST {{host}}/api/orders
 Authorization: Bearer {{token}}
 Content-Type: application/json
@@ -595,7 +595,7 @@ Content-Type: application/json
 > {%
   const b = typeof response.body === "string" ? JSON.parse(response.body) : response.body;
   client.test("400", () => client.assert(response.status === 400, "status " + response.status));
-  client.test("[БАГ] items[0].sizeId — первая ошибка не перезаписана", () => client.assert(
+  client.test("items[0].sizeId — первая ошибка не перезаписана", () => client.assert(
       b.errors["items[0].sizeId"] === "Нет такой позиции в справочнике ITEM_SIZE", b.errors["items[0].sizeId"]));
 %}
 

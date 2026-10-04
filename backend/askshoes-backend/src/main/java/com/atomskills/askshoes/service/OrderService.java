@@ -2,14 +2,10 @@ package com.atomskills.askshoes.service;
 
 import com.atomskills.argent.error.ValidationErrorsException;
 import com.atomskills.argent.reference.RefItemRepository;
-import com.atomskills.argent.reference.RefTypeRepository;
-import com.atomskills.argent.reference.entity.RefItem;
-import com.atomskills.argent.reference.entity.RefType;
 import com.atomskills.argent.sequence.NumberGenerator;
 import com.atomskills.argent.status.Status;
 import com.atomskills.argent.status.StatusRepository;
 import com.atomskills.argent.status.StatusTypeRepository;
-import com.atomskills.askshoes.dto.client.ClientRequest;
 import com.atomskills.askshoes.dto.order.*;
 import com.atomskills.askshoes.entity.client.Client;
 import com.atomskills.askshoes.entity.order.Order;
@@ -17,7 +13,6 @@ import com.atomskills.askshoes.entity.order.OrderItem;
 import com.atomskills.askshoes.entity.order.OrderItemDefect;
 import com.atomskills.askshoes.entity.order.OrderItemWork;
 import com.atomskills.askshoes.repository.OrderRepository;
-import com.atomskills.askshoes.utils.PhoneUtils;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
@@ -25,9 +20,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -62,8 +54,8 @@ public class OrderService {
 
   private final OrderRepository orderRepository;
   private final ClientService clientService;
+  private final OrderValidator orderValidator;
   private final RefItemRepository refItemRepository;
-  private final RefTypeRepository refTypeRepository;
   private final NumberGenerator numberGenerator;
   private final StatusTypeRepository statusTypeRepository;
   private final StatusRepository statusRepository;
@@ -79,7 +71,7 @@ public class OrderService {
    */
   @Transactional
   public OrderResponse create(OrderRequest request, UUID managerId) {
-    validate(request, null);
+    orderValidator.validate(request, null);
     Client client = clientService.upsertByPhone(request.client());
 
     Order order = new Order();
@@ -107,7 +99,7 @@ public class OrderService {
   @Transactional
   public OrderResponse update(UUID id, OrderRequest request) {
     Order order = findOrder(id);
-    validate(request, order);
+    orderValidator.validate(request, order);
     order.setClient(clientService.upsertByPhone(request.client()));
 
     apply(order, request);
@@ -186,202 +178,6 @@ public class OrderService {
             () ->
                 new NoSuchElementException(
                     "Нет статуса " + STATUS_TYPE_CODE + "/" + INITIAL_STATUS_CODE));
-  }
-
-  // ---------------------------------------------------------------- validate
-
-  /**
-   * Все бизнес-проверки
-   *
-   * @param existing заказ для PUT, {@code null} для POST
-   */
-  private void validate(OrderRequest request, Order existing) {
-    Map<String, String> errors = new LinkedHashMap<>();
-    RefLookup refs = new RefLookup(request, errors);
-
-    ClientRequest client = request.client();
-    if (PhoneUtils.normalizePhone(client.phone()) == null) {
-      errors.put("client.phone", PhoneUtils.INVALID_PHONE_MESSAGE);
-    }
-    refs.get("client.sourceId", client.sourceId(), "CLIENT_SOURCE");
-    refs.get("client.statusId", client.statusId(), "CLIENT_STATUS");
-    for (int i = 0; i < client.contactMethodIds().size(); i++) {
-      refs.get(
-          "client.contactMethodIds[" + i + "]", client.contactMethodIds().get(i), "CONTACT_METHOD");
-    }
-
-    Map<UUID, OrderItem> existingItems =
-        existing == null
-            ? Map.of()
-            : existing.getItems().stream()
-                .collect(Collectors.toMap(OrderItem::getId, Function.identity()));
-    Set<UUID> seenItemIds = new HashSet<>();
-    Set<UUID> seenWorkIds = new HashSet<>();
-
-    for (int i = 0; i < request.items().size(); i++) {
-      OrderItemRequest item = request.items().get(i);
-      String path = "items[" + i + "]";
-
-      RefItem category = refs.get(path + ".categoryId", item.categoryId(), "ITEM_CATEGORY");
-      RefItem itemType = refs.get(path + ".itemTypeId", item.itemTypeId(), "ITEM_TYPE");
-      RefItem brand = refs.get(path + ".brandId", item.brandId(), "BRAND");
-      refs.get(path + ".colorId", item.colorId(), "COLOR");
-      refs.get(path + ".materialId", item.materialId(), "MATERIAL");
-      RefItem size = refs.get(path + ".sizeId", item.sizeId(), "ITEM_SIZE");
-      for (int j = 0; j < item.defectTypeIds().size(); j++) {
-        refs.get(path + ".defectTypeIds[" + j + "]", item.defectTypeIds().get(j), "DEFECT_TYPE");
-      }
-
-      if (category != null
-          && itemType != null
-          && !Objects.equals(attribute(itemType, "categoryCode"), category.getCode())) {
-        errors.put(path + ".itemTypeId", "Тип изделия не относится к выбранной категории");
-      }
-
-      if (itemType != null && item.sizeId() != null) {
-        Object grid = attribute(itemType, "sizeGrid");
-        if (grid == null) {
-          errors.put(path + ".sizeId", "У этого типа изделия нет размера");
-        } else if (size != null && !Objects.equals(grid, attribute(size, "gridCode"))) {
-          errors.put(path + ".sizeId", "Размер не из сетки этого типа изделия");
-        }
-      }
-
-      boolean warrantyBrand = brand != null && Boolean.TRUE.equals(attribute(brand, "warranty"));
-      boolean brandUnknown = item.brandId() != null && brand == null;
-      if (Boolean.TRUE.equals(item.warranty()) && !warrantyBrand && !brandUnknown) {
-        errors.put(path + ".warranty", "Гарантия возможна только для гарантийного бренда");
-      }
-
-      OrderItem existingItem =
-          checkItemId(item.id(), path, existing, existingItems, seenItemIds, errors);
-
-      for (int k = 0; k < item.works().size(); k++) {
-        OrderItemWorkRequest work = item.works().get(k);
-        String workPath = path + ".works[" + k + "]";
-        refs.get(workPath + ".serviceTypeId", work.serviceTypeId(), "SERVICE_TYPE");
-        checkWorkId(work.id(), workPath, existing, item.id(), existingItem, seenWorkIds, errors);
-      }
-    }
-
-    if (!errors.isEmpty()) {
-      throw new ValidationErrorsException(errors);
-    }
-  }
-
-  /** Проверяет {@code id} изделия; возвращает существующее изделие, если оно найдено. */
-  private OrderItem checkItemId(
-      UUID id,
-      String path,
-      Order existing,
-      Map<UUID, OrderItem> existingItems,
-      Set<UUID> seenItemIds,
-      Map<String, String> errors) {
-    if (id == null) {
-      return null;
-    }
-    if (existing == null) {
-      errors.put(path + ".id", "У нового заказа не может быть существующих изделий");
-      return null;
-    }
-    OrderItem found = existingItems.get(id);
-    if (found == null) {
-      errors.put(path + ".id", "Изделие не найдено в этом заказе");
-      return null;
-    }
-    if (!seenItemIds.add(id)) {
-      errors.put(path + ".id", "Изделие указано в запросе дважды");
-      return null;
-    }
-    return found;
-  }
-
-  private void checkWorkId(
-      UUID id,
-      String path,
-      Order existing,
-      UUID itemId,
-      OrderItem existingItem,
-      Set<UUID> seenWorkIds,
-      Map<String, String> errors) {
-    if (id == null) {
-      return;
-    }
-    if (existing == null) {
-      errors.put(path + ".id", "У нового заказа не может быть существующих работ");
-      return;
-    }
-    boolean belongs =
-        itemId != null
-            && existingItem != null
-            && existingItem.getWorks().stream().anyMatch(work -> id.equals(work.getId()));
-    if (!belongs) {
-      errors.put(path + ".id", "Работа не найдена у этого изделия");
-    } else if (!seenWorkIds.add(id)) {
-      errors.put(path + ".id", "Работа указана в запросе дважды");
-    }
-  }
-
-  private static Object attribute(RefItem item, String key) {
-    return item.getAttributes() == null ? null : item.getAttributes().get(key);
-  }
-
-  /**
-   * Все позиции справочников из запроса, загруженные одним {@code findAllById}, и проверка, что
-   * позиция существует и принадлежит ожидаемому типу.
-   */
-  private final class RefLookup {
-    private final Map<UUID, RefItem> items;
-    private final Map<String, UUID> typeIdsByCode;
-    private final Map<String, String> errors;
-
-    RefLookup(OrderRequest request, Map<String, String> errors) {
-      this.errors = errors;
-      this.items =
-          refItemRepository.findAllById(collectRefIds(request)).stream()
-              .collect(Collectors.toMap(RefItem::getId, Function.identity()));
-      this.typeIdsByCode =
-          refTypeRepository.findAll().stream()
-              .collect(Collectors.toMap(RefType::getCode, RefType::getId));
-    }
-
-    /**
-     * @return позиция, если {@code id} указан, существует и нужного типа; иначе {@code null} (и
-     *     ошибка по {@code path}, если {@code id} был указан)
-     */
-    RefItem get(String path, UUID id, String typeCode) {
-      if (id == null) {
-        return null;
-      }
-      RefItem item = items.get(id);
-      if (item == null || !Objects.equals(item.getRefTypeId(), typeIdsByCode.get(typeCode))) {
-        errors.put(path, "Нет такой позиции в справочнике " + typeCode);
-        return null;
-      }
-      return item;
-    }
-
-    private static Set<UUID> collectRefIds(OrderRequest request) {
-      Set<UUID> ids = new HashSet<>();
-      ClientRequest client = request.client();
-      ids.add(client.sourceId());
-      ids.add(client.statusId());
-      ids.addAll(client.contactMethodIds());
-      for (OrderItemRequest item : request.items()) {
-        ids.addAll(
-            Arrays.asList(
-                item.categoryId(),
-                item.itemTypeId(),
-                item.brandId(),
-                item.colorId(),
-                item.materialId(),
-                item.sizeId()));
-        ids.addAll(item.defectTypeIds());
-        item.works().forEach(work -> ids.add(work.serviceTypeId()));
-      }
-      ids.remove(null);
-      return ids;
-    }
   }
 
   // ------------------------------------------------------------------- apply
@@ -542,7 +338,7 @@ public class OrderService {
     }
     return refItemRepository
         .findById(client.getStatusId())
-        .map(status -> attribute(status, "discountPercent"))
+        .map(status -> RefLookup.attribute(status, "discountPercent"))
         .map(value -> new BigDecimal(value.toString()))
         .orElse(BigDecimal.ZERO);
   }
