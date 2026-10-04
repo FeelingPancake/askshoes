@@ -1,0 +1,19 @@
+### Регистрация выключена → 403 (ручной сценарий)
+#
+# Отдельный файл, потому что нужен другой запуск backend:
+#   1. askshoes application.yml → argent.auth.registration.enabled: false
+#   2. перезапустить backend, выполнить этот файл — ожидается 403
+#   3. вернуть enabled: true, перезапустить
+#
+# Логин фиксированный (`disabled-check`): если по ошибке запустить при enabled: true, создастся
+# не больше одного пользователя с понятным именем, а повторные запуски получат 400 «Логин уже занят».
+
+### Регистрация при выключенной настройке
+POST {{host}}/api/auth/register
+Content-Type: application/json
+
+{"username": "disabled-check", "displayName": "Проверка выключенной регистрации", "password": "secret123"}
+
+> {%
+  client.test("403 — регистрация выключена", () => client.assert(response.status === 403, "status " + response.status));
+%}

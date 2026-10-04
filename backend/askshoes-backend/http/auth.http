@@ -1,0 +1,99 @@
+### Регистрация и логин (argent.auth)
+#
+# Запуск: IntelliJ HTTP Client, окружение `local`, «Run All Requests in File».
+# Требует argent.auth.registration.enabled: true в askshoes application.yml.
+# Каждый прогон регистрирует нового пользователя t<run> — файл можно гонять повторно.
+
+### 0. Подготовка: логин этого прогона (открытый эндпоинт — только ради обработчика)
+GET {{host}}/v3/api-docs
+
+> {% client.global.set("reg_username", "t" + Date.now()); %}
+
+### 1. Регистрация → 201 и токен
+POST {{host}}/api/auth/register
+Content-Type: application/json
+
+{"username": "{{reg_username}}", "displayName": "Тест регистрации", "password": "secret123"}
+
+> {%
+  client.test("201", () => client.assert(response.status === 201, "status " + response.status));
+  client.test("есть токен", () => client.assert(typeof response.body.token === "string" && response.body.token.length > 0));
+  client.global.set("reg_token", response.body.token);
+%}
+
+### 2. Токен из регистрации пускает к защищённому эндпоинту
+GET {{host}}/api/refs
+Authorization: Bearer {{reg_token}}
+
+> {% client.test("200", () => client.assert(response.status === 200, "status " + response.status)); %}
+
+### 3. Повторная регистрация с тем же логином → 400 errors.username
+POST {{host}}/api/auth/register
+Content-Type: application/json
+
+{"username": "{{reg_username}}", "displayName": "Дубль", "password": "secret123"}
+
+> {%
+  const b = typeof response.body === "string" ? JSON.parse(response.body) : response.body;
+  client.test("400", () => client.assert(response.status === 400, "status " + response.status));
+  client.test("errors.username", () => client.assert(b.errors.username === "Логин уже занят", JSON.stringify(b.errors)));
+%}
+
+### 4. @Valid: короткий пароль и пустое имя → 400 по обоим полям
+POST {{host}}/api/auth/register
+Content-Type: application/json
+
+{"username": "{{reg_username}}x", "displayName": "", "password": "123"}
+
+> {%
+  const b = typeof response.body === "string" ? JSON.parse(response.body) : response.body;
+  client.test("400", () => client.assert(response.status === 400, "status " + response.status));
+  client.test("ошибки password и displayName", () => client.assert(
+      "password" in b.errors && "displayName" in b.errors, JSON.stringify(b.errors)));
+%}
+
+### 5. Логин зарегистрированным пользователем → 200
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{"username": "{{reg_username}}", "password": "secret123"}
+
+> {%
+  client.test("200", () => client.assert(response.status === 200, "status " + response.status));
+  client.global.set("login_token_1", response.body.token);
+%}
+
+### 6. Второй логин подряд → тоже 200 (у пользователя уже несколько сессий)
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{"username": "{{reg_username}}", "password": "secret123"}
+
+> {%
+  client.test("200", () => client.assert(response.status === 200, "status " + response.status));
+  client.test("новый токен ≠ первому (новая сессия)", () => client.assert(
+      response.body.token !== client.global.get("login_token_1")));
+  client.global.set("login_token_2", response.body.token);
+%}
+
+### 7. Токен второго логина работает
+GET {{host}}/api/refs
+Authorization: Bearer {{login_token_2}}
+
+> {% client.test("200", () => client.assert(response.status === 200, "status " + response.status)); %}
+
+### 8. Неверный пароль → 401
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{"username": "{{reg_username}}", "password": "wrong-password"}
+
+> {% client.test("401", () => client.assert(response.status === 401, "status " + response.status)); %}
+
+### 9. Без токена → 401
+GET {{host}}/api/refs
+
+> {% client.test("401", () => client.assert(response.status === 401, "status " + response.status)); %}
+
+# Проверка «регистрация выключена → 403» — в auth-disabled.http: ей нужен другой запуск backend,
+# и в этом файле она при «Run All» создавала бы пользователя.
