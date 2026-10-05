@@ -22,13 +22,11 @@ yarn-error.log
 .settings/
 *.launch
 
-# VS Code (keep shared config, ignore local state)
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-!.vscode/mcp.json
+# VS Code
+.vscode/
+
+# Служебные файлы расширений (VS Code Java upgrade и т.п.)
+.github/modernize/
 
 # OS
 .DS_Store
