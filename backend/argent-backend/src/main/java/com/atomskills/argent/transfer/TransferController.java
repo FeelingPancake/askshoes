@@ -1,5 +1,6 @@
 package com.atomskills.argent.transfer;
 
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -41,6 +42,7 @@ public class TransferController {
    * @return файл с корректными {@code Content-Type}/{@code Content-Disposition}
    * @throws IOException если генерация файла не удалась
    */
+  @Operation(operationId = "exportTable")
   @PostMapping("api/export/{format}")
   public ResponseEntity<ByteArrayResource> export(
       @PathVariable String format, @Valid @RequestBody ExportRequest request) throws IOException {
@@ -93,6 +95,7 @@ public class TransferController {
    * @return строки файла (первая строка файла — заголовок, в результат как данные не попадает)
    * @throws IOException если файл повреждён или не читается
    */
+  @Operation(operationId = "importTable")
   @PostMapping("api/import/{format}")
   public List<Map<String, String>> importFile(
       @PathVariable String format, @RequestParam MultipartFile file) throws IOException {

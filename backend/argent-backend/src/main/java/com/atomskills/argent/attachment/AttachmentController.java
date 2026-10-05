@@ -1,5 +1,6 @@
 package com.atomskills.argent.attachment;
 
+import io.swagger.v3.oas.annotations.Operation;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -51,6 +52,7 @@ public class AttachmentController {
    * @return метаданные сохранённого вложения
    * @throws IOException если запись на диск не удалась
    */
+  @Operation(operationId = "uploadAttachment")
   @PostMapping("api/attachments")
   public AttachmentResponse upload(
       @RequestParam MultipartFile file,
@@ -71,6 +73,7 @@ public class AttachmentController {
    * @param id id вложения
    * @throws jakarta.persistence.EntityNotFoundException если такого вложения нет
    */
+  @Operation(operationId = "downloadAttachment")
   @GetMapping("api/attachments/{id}")
   public ResponseEntity<Resource> download(@PathVariable UUID id) {
     Attachment attachment = attachmentStorageService.findOrThrow(id);
@@ -89,6 +92,7 @@ public class AttachmentController {
   }
 
   /** Список вложений конкретной сущности. */
+  @Operation(operationId = "listAttachments")
   @GetMapping("api/attachments")
   public List<AttachmentResponse> list(
       @RequestParam String entityType, @RequestParam String entityId) {
@@ -103,6 +107,7 @@ public class AttachmentController {
    *
    * @throws IOException если удаление файла с диска не удалось
    */
+  @Operation(operationId = "deleteAttachment")
   @DeleteMapping("api/attachments/{id}")
   public void delete(@PathVariable UUID id) throws IOException {
     attachmentStorageService.delete(id);

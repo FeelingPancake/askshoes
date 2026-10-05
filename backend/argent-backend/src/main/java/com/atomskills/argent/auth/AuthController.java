@@ -2,6 +2,7 @@ package com.atomskills.argent.auth;
 
 import com.atomskills.argent.user.User;
 import com.atomskills.argent.user.UserRepository;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -41,6 +42,7 @@ public class AuthController {
    * @throws org.springframework.security.authentication.BadCredentialsException если пользователь
    *     не найден, у него не настроен пароль, или пароль неверный
    */
+  @Operation(operationId = "login")
   @PostMapping("api/auth/login")
   public LoginResponse login(@Valid @RequestBody LoginRequest request) {
     User user =
@@ -72,6 +74,7 @@ public class AuthController {
    *     (403)
    * @throws com.atomskills.argent.error.ValidationErrorsException если логин занят (400)
    */
+  @Operation(operationId = "register")
   @PostMapping("api/auth/register")
   @ResponseStatus(HttpStatus.CREATED)
   public LoginResponse register(@Valid @RequestBody RegisterRequest registerRequest) {

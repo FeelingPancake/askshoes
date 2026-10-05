@@ -4,6 +4,7 @@ import com.atomskills.askshoes.dto.order.OrderListItem;
 import com.atomskills.askshoes.dto.order.OrderRequest;
 import com.atomskills.askshoes.dto.order.OrderResponse;
 import com.atomskills.askshoes.service.OrderService;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -39,6 +40,7 @@ public class OrderController {
    * @return созданный заказ, {@code 201}
    * @throws com.atomskills.argent.error.ValidationErrorsException 400 при ошибках проверок
    */
+  @Operation(operationId = "createOrder")
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   public OrderResponse create(
@@ -55,6 +57,7 @@ public class OrderController {
    * @throws jakarta.persistence.EntityNotFoundException 404, если заказа нет
    * @throws com.atomskills.argent.error.ValidationErrorsException 400 при ошибках проверок
    */
+  @Operation(operationId = "updateOrder")
   @PutMapping("{id}")
   public OrderResponse update(@PathVariable UUID id, @Valid @RequestBody OrderRequest request) {
     return orderService.update(id, request);
@@ -65,6 +68,7 @@ public class OrderController {
    * @return заказ целиком
    * @throws jakarta.persistence.EntityNotFoundException 404, если заказа нет
    */
+  @Operation(operationId = "getOrder")
   @GetMapping("{id}")
   public OrderResponse get(@PathVariable UUID id) {
     return orderService.get(id);
@@ -77,6 +81,7 @@ public class OrderController {
    * @param pageable страница/размер/сортировка
    * @return страница строк списка
    */
+  @Operation(operationId = "listOrders")
   @GetMapping
   public Page<OrderListItem> list(
       @RequestParam(required = false) String search,
