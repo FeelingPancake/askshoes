@@ -32,3 +32,4 @@ package.json
 tsconfig.json
 README.md
 git_push.sh
+.gitignore

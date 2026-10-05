@@ -1,59 +1,32 @@
-# Frontend
+# frontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.2.
+Angular-workspace AskShoes: ядро `argent-ui`, сгенерированный клиент API `argent-api` и
+приложение `askshoes-frontend`.
 
-## Development server
+| Project | Что это | README |
+|---|---|---|
+| `projects/argent-api` | клиент backend API, **сгенерирован** openapi-generator — руками не правится | `projects/argent-api/README.md` |
+| `projects/argent-ui` | переиспользуемое ядро: вход, интерцепторы, каркас, `RefCrudPage` | `projects/argent-ui/README.md` |
+| `projects/askshoes-frontend` | приложение AskShoes | `projects/askshoes-frontend/README.md` |
 
-To start a local development server, run:
+Приложение импортирует библиотеки из **`dist/`** (`tsconfig.json` → `paths`), поэтому после
+изменения библиотеки или перегенерации клиента нужен `npm run build-libs`.
 
-```bash
-ng serve
-```
+## Скрипты
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+| Команда | Что делает |
+|---|---|
+| `npm start` | `ng serve askshoes-frontend` — http://localhost:4200 |
+| `npm run watch` | пересобирает `argent-ui` в `dist/` при каждом сохранении (второй терминал рядом со `start`) |
+| `npm run build-libs` | собирает `argent-api` и `argent-ui` |
+| `npm run build` | `build-libs` + production-сборка приложения |
+| `npm run generate-api` | качает `/v3/api-docs` с запущенного backend (`fetch-openapi-spec`) и перегенерирует `argent-api` |
+| `npm run lint` / `lint:fix` | ESLint (`argent-ui`, `askshoes-frontend`) |
+| `npm run format` | Prettier по `projects/` |
+| `npm test` | Vitest (тесты отложены до конца roadmap) |
 
-## Code scaffolding
+## Обычный цикл
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+1. Backend запущен на `:8080`, Postgres — `docker compose up -d` из корня репозитория.
+2. Изменился API → `npm run generate-api` → `npm run build-libs`.
+3. `npm start` (+ `npm run watch`, если правишь `argent-ui`).
