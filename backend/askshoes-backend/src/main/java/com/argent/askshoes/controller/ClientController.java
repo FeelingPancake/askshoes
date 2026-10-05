@@ -2,6 +2,7 @@ package com.argent.askshoes.controller;
 
 import com.argent.askshoes.dto.client.ClientResponse;
 import com.argent.askshoes.service.ClientService;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,6 +24,7 @@ public class ClientController {
    * @throws com.argent.kernel.error.ValidationErrorsException 400, если телефон неверный
    * @throws jakarta.persistence.EntityNotFoundException 404, если клиента нет
    */
+  @Operation(operationId = "getClientByPhone")
   @GetMapping("by-phone")
   public ClientResponse getByPhone(@RequestParam String phone) {
     return clientService.getByPhone(phone);

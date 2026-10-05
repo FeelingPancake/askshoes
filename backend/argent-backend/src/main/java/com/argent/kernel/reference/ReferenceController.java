@@ -6,6 +6,7 @@ import com.argent.kernel.reference.dto.RefItemResponse;
 import com.argent.kernel.reference.dto.RefTypeResponse;
 import com.argent.kernel.reference.entity.RefItem;
 import com.argent.kernel.reference.entity.RefType;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import java.io.IOException;
@@ -47,6 +48,7 @@ public class ReferenceController {
    *
    * @return страница справочников
    */
+  @Operation(operationId = "listRefTypes")
   @GetMapping()
   public List<RefTypeResponse> listTypes() {
     return refTypeRepository.findAll(Sort.by("name")).stream().map(RefTypeResponse::from).toList();
@@ -60,6 +62,7 @@ public class ReferenceController {
    * @return страница позиций
    * @throws jakarta.persistence.EntityNotFoundException если такого типа справочника нет
    */
+  @Operation(operationId = "listRefItems")
   @GetMapping("{code}")
   public Page<RefItemResponse> list(@PathVariable String code, Pageable pageable) {
     RefType refType =
@@ -85,6 +88,7 @@ public class ReferenceController {
    * @throws IOException если не удалось прочитать загруженный файл
    * @throws com.argent.kernel.error.ValidationErrorsException если в данных есть ошибки
    */
+  @Operation(operationId = "importRefItems")
   @PostMapping(value = "import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public Map<String, RefImportResult> importFile(@RequestParam MultipartFile file)
       throws IOException {
@@ -101,6 +105,7 @@ public class ReferenceController {
    * @return созданная позиция (с присвоенным {@code id})
    * @throws jakarta.persistence.EntityNotFoundException если такого типа справочника нет
    */
+  @Operation(operationId = "createRefItem")
   @PostMapping("{code}")
   public RefItemResponse create(
       @PathVariable String code, @Valid @RequestBody RefItemRequest request) {
@@ -127,6 +132,7 @@ public class ReferenceController {
    * @return обновлённая позиция
    * @throws jakarta.persistence.EntityNotFoundException если позиции с таким {@code itemId} нет
    */
+  @Operation(operationId = "updateRefItem")
   @PutMapping("{code}/{itemId}")
   public RefItemResponse update(
       @PathVariable String code,
@@ -150,6 +156,7 @@ public class ReferenceController {
    * @param code код типа справочника
    * @param itemId id удаляемой позиции
    */
+  @Operation(operationId = "deleteRefItem")
   @DeleteMapping("{code}/{itemId}")
   public void delete(@PathVariable String code, @PathVariable UUID itemId) {
     refItemRepository.deleteById(itemId);
