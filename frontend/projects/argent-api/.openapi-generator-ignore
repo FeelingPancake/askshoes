@@ -22,14 +22,18 @@
 # Then explicitly reverse the ignore rule for a single file:
 #!docs/README.md
 
-# --- askshoes-specific: этот каталог живёт внутри ng-packagr библиотеки (projects/argent-api),
-# у которой уже есть собственные ng-package.json/package.json/tsconfig.json/README.md на уровень
-# выше (src/lib/..). Генератор не в курсе этого контекста и пишет свою копию каждый файл — вторая
-# копия внутри src/lib создаёт лишнюю "точку входа" для ng-packagr и ломает сборку. См.
-# projects/argent-api/README.md.
-ng-package.json
-package.json
-tsconfig.json
-README.md
-git_push.sh
-.gitignore
+# --- argent-api: файл лежит вне src/lib, потому что `npm run clean-api` удаляет src/lib
+# целиком; генератор получает его через --ignore-file-override. Пути ниже — относительно
+# этого файла (projects/argent-api), поэтому с префиксом src/lib/.
+#
+# Пакет ng-packagr (projects/argent-api) уже имеет свои ng-package.json/package.json/
+# tsconfig.json/README.md. Копии, которые генератор пишет в src/lib, создают лишнюю «точку
+# входа» для ng-packagr и ломают сборку. Последняя строка — пустой ignore-файл по умолчанию,
+# который генератор иначе кладёт в src/lib.
+src/lib/ng-package.json
+src/lib/package.json
+src/lib/tsconfig.json
+src/lib/README.md
+src/lib/git_push.sh
+src/lib/.gitignore
+src/lib/.openapi-generator-ignore

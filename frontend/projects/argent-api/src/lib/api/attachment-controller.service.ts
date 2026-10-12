@@ -24,12 +24,31 @@ import { OpenApiHttpParams, QueryParamStyle } from '../query.params';
 // @ts-ignore
 import { AttachmentResponse } from '../model/attachment-response';
 // @ts-ignore
-import { ImportFileRequest } from '../model/import-file-request';
+import { ImportRefItemsRequest } from '../model/import-ref-items-request';
 
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS } from '../variables';
 import { Configuration } from '../configuration';
 import { BaseService } from '../api.base.service';
+
+export interface DeleteAttachmentRequestParams {
+  id: string;
+}
+
+export interface DownloadAttachmentRequestParams {
+  id: string;
+}
+
+export interface ListAttachmentsRequestParams {
+  entityType: string;
+  entityId: string;
+}
+
+export interface UploadAttachmentRequestParams {
+  entityType: string;
+  entityId: string;
+  importRefItemsRequest?: ImportRefItemsRequest;
+}
 
 @Injectable({
   providedIn: 'root',
@@ -45,37 +64,38 @@ export class AttachmentControllerService extends BaseService {
 
   /**
    * @endpoint delete /api/attachments/{id}
-   * @param id
+   * @param requestParameters
    * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
    * @param reportProgress flag to report request and response progress.
    * @param options additional options
    */
-  public delete1(
-    id: string,
+  public deleteAttachment(
+    requestParameters: DeleteAttachmentRequestParams,
     observe?: 'body',
     reportProgress?: boolean,
     options?: { httpHeaderAccept?: undefined; context?: HttpContext; transferCache?: boolean },
   ): Observable<any>;
-  public delete1(
-    id: string,
+  public deleteAttachment(
+    requestParameters: DeleteAttachmentRequestParams,
     observe?: 'response',
     reportProgress?: boolean,
     options?: { httpHeaderAccept?: undefined; context?: HttpContext; transferCache?: boolean },
   ): Observable<HttpResponse<any>>;
-  public delete1(
-    id: string,
+  public deleteAttachment(
+    requestParameters: DeleteAttachmentRequestParams,
     observe?: 'events',
     reportProgress?: boolean,
     options?: { httpHeaderAccept?: undefined; context?: HttpContext; transferCache?: boolean },
   ): Observable<HttpEvent<any>>;
-  public delete1(
-    id: string,
+  public deleteAttachment(
+    requestParameters: DeleteAttachmentRequestParams,
     observe: any = 'body',
     reportProgress: boolean = false,
     options?: { httpHeaderAccept?: undefined; context?: HttpContext; transferCache?: boolean },
   ): Observable<any> {
+    const id = requestParameters?.id;
     if (id === null || id === undefined) {
-      throw new Error('Required parameter id was null or undefined when calling delete1.');
+      throw new Error('Required parameter id was null or undefined when calling deleteAttachment.');
     }
 
     let localVarHeaders = this.defaultHeaders;
@@ -116,13 +136,13 @@ export class AttachmentControllerService extends BaseService {
 
   /**
    * @endpoint get /api/attachments/{id}
-   * @param id
+   * @param requestParameters
    * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
    * @param reportProgress flag to report request and response progress.
    * @param options additional options
    */
-  public download(
-    id: string,
+  public downloadAttachment(
+    requestParameters: DownloadAttachmentRequestParams,
     observe?: 'body',
     reportProgress?: boolean,
     options?: {
@@ -131,8 +151,8 @@ export class AttachmentControllerService extends BaseService {
       transferCache?: boolean;
     },
   ): Observable<Blob>;
-  public download(
-    id: string,
+  public downloadAttachment(
+    requestParameters: DownloadAttachmentRequestParams,
     observe?: 'response',
     reportProgress?: boolean,
     options?: {
@@ -141,8 +161,8 @@ export class AttachmentControllerService extends BaseService {
       transferCache?: boolean;
     },
   ): Observable<HttpResponse<Blob>>;
-  public download(
-    id: string,
+  public downloadAttachment(
+    requestParameters: DownloadAttachmentRequestParams,
     observe?: 'events',
     reportProgress?: boolean,
     options?: {
@@ -151,8 +171,8 @@ export class AttachmentControllerService extends BaseService {
       transferCache?: boolean;
     },
   ): Observable<HttpEvent<Blob>>;
-  public download(
-    id: string,
+  public downloadAttachment(
+    requestParameters: DownloadAttachmentRequestParams,
     observe: any = 'body',
     reportProgress: boolean = false,
     options?: {
@@ -161,8 +181,11 @@ export class AttachmentControllerService extends BaseService {
       transferCache?: boolean;
     },
   ): Observable<any> {
+    const id = requestParameters?.id;
     if (id === null || id === undefined) {
-      throw new Error('Required parameter id was null or undefined when calling download.');
+      throw new Error(
+        'Required parameter id was null or undefined when calling downloadAttachment.',
+      );
     }
 
     let localVarHeaders = this.defaultHeaders;
@@ -192,15 +215,13 @@ export class AttachmentControllerService extends BaseService {
 
   /**
    * @endpoint get /api/attachments
-   * @param entityType
-   * @param entityId
+   * @param requestParameters
    * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
    * @param reportProgress flag to report request and response progress.
    * @param options additional options
    */
-  public list1(
-    entityType: string,
-    entityId: string,
+  public listAttachments(
+    requestParameters: ListAttachmentsRequestParams,
     observe?: 'body',
     reportProgress?: boolean,
     options?: {
@@ -209,9 +230,8 @@ export class AttachmentControllerService extends BaseService {
       transferCache?: boolean;
     },
   ): Observable<Array<AttachmentResponse>>;
-  public list1(
-    entityType: string,
-    entityId: string,
+  public listAttachments(
+    requestParameters: ListAttachmentsRequestParams,
     observe?: 'response',
     reportProgress?: boolean,
     options?: {
@@ -220,9 +240,8 @@ export class AttachmentControllerService extends BaseService {
       transferCache?: boolean;
     },
   ): Observable<HttpResponse<Array<AttachmentResponse>>>;
-  public list1(
-    entityType: string,
-    entityId: string,
+  public listAttachments(
+    requestParameters: ListAttachmentsRequestParams,
     observe?: 'events',
     reportProgress?: boolean,
     options?: {
@@ -231,9 +250,8 @@ export class AttachmentControllerService extends BaseService {
       transferCache?: boolean;
     },
   ): Observable<HttpEvent<Array<AttachmentResponse>>>;
-  public list1(
-    entityType: string,
-    entityId: string,
+  public listAttachments(
+    requestParameters: ListAttachmentsRequestParams,
     observe: any = 'body',
     reportProgress: boolean = false,
     options?: {
@@ -242,11 +260,17 @@ export class AttachmentControllerService extends BaseService {
       transferCache?: boolean;
     },
   ): Observable<any> {
+    const entityType = requestParameters?.entityType;
     if (entityType === null || entityType === undefined) {
-      throw new Error('Required parameter entityType was null or undefined when calling list1.');
+      throw new Error(
+        'Required parameter entityType was null or undefined when calling listAttachments.',
+      );
     }
+    const entityId = requestParameters?.entityId;
     if (entityId === null || entityId === undefined) {
-      throw new Error('Required parameter entityId was null or undefined when calling list1.');
+      throw new Error(
+        'Required parameter entityId was null or undefined when calling listAttachments.',
+      );
     }
 
     let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
@@ -306,17 +330,13 @@ export class AttachmentControllerService extends BaseService {
 
   /**
    * @endpoint post /api/attachments
-   * @param entityType
-   * @param entityId
-   * @param importFileRequest
+   * @param requestParameters
    * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
    * @param reportProgress flag to report request and response progress.
    * @param options additional options
    */
-  public upload(
-    entityType: string,
-    entityId: string,
-    importFileRequest?: ImportFileRequest,
+  public uploadAttachment(
+    requestParameters: UploadAttachmentRequestParams,
     observe?: 'body',
     reportProgress?: boolean,
     options?: {
@@ -325,10 +345,8 @@ export class AttachmentControllerService extends BaseService {
       transferCache?: boolean;
     },
   ): Observable<AttachmentResponse>;
-  public upload(
-    entityType: string,
-    entityId: string,
-    importFileRequest?: ImportFileRequest,
+  public uploadAttachment(
+    requestParameters: UploadAttachmentRequestParams,
     observe?: 'response',
     reportProgress?: boolean,
     options?: {
@@ -337,10 +355,8 @@ export class AttachmentControllerService extends BaseService {
       transferCache?: boolean;
     },
   ): Observable<HttpResponse<AttachmentResponse>>;
-  public upload(
-    entityType: string,
-    entityId: string,
-    importFileRequest?: ImportFileRequest,
+  public uploadAttachment(
+    requestParameters: UploadAttachmentRequestParams,
     observe?: 'events',
     reportProgress?: boolean,
     options?: {
@@ -349,10 +365,8 @@ export class AttachmentControllerService extends BaseService {
       transferCache?: boolean;
     },
   ): Observable<HttpEvent<AttachmentResponse>>;
-  public upload(
-    entityType: string,
-    entityId: string,
-    importFileRequest?: ImportFileRequest,
+  public uploadAttachment(
+    requestParameters: UploadAttachmentRequestParams,
     observe: any = 'body',
     reportProgress: boolean = false,
     options?: {
@@ -361,12 +375,19 @@ export class AttachmentControllerService extends BaseService {
       transferCache?: boolean;
     },
   ): Observable<any> {
+    const entityType = requestParameters?.entityType;
     if (entityType === null || entityType === undefined) {
-      throw new Error('Required parameter entityType was null or undefined when calling upload.');
+      throw new Error(
+        'Required parameter entityType was null or undefined when calling uploadAttachment.',
+      );
     }
+    const entityId = requestParameters?.entityId;
     if (entityId === null || entityId === undefined) {
-      throw new Error('Required parameter entityId was null or undefined when calling upload.');
+      throw new Error(
+        'Required parameter entityId was null or undefined when calling uploadAttachment.',
+      );
     }
+    const importRefItemsRequest = requestParameters?.importRefItemsRequest;
 
     let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -421,7 +442,7 @@ export class AttachmentControllerService extends BaseService {
     const { basePath, withCredentials } = this.configuration;
     return this.httpClient.request<AttachmentResponse>('post', `${basePath}${localVarPath}`, {
       context: localVarHttpContext,
-      body: importFileRequest,
+      body: importRefItemsRequest,
       params: localVarQueryParameters.toHttpParams(),
       responseType: <any>responseType_,
       ...(withCredentials ? { withCredentials } : {}),

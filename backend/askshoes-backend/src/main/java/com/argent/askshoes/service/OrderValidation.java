@@ -2,8 +2,6 @@ package com.argent.askshoes.service;
 
 import static com.argent.askshoes.service.RefLookup.attribute;
 
-import com.argent.kernel.error.ValidationErrorsException;
-import com.argent.kernel.reference.entity.RefItem;
 import com.argent.askshoes.dto.client.ClientRequest;
 import com.argent.askshoes.dto.order.OrderItemRequest;
 import com.argent.askshoes.dto.order.OrderItemWorkRequest;
@@ -11,6 +9,8 @@ import com.argent.askshoes.dto.order.OrderRequest;
 import com.argent.askshoes.entity.order.Order;
 import com.argent.askshoes.entity.order.OrderItem;
 import com.argent.askshoes.utils.PhoneUtils;
+import com.argent.kernel.error.ValidationErrorsException;
+import com.argent.kernel.reference.entity.RefItem;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;

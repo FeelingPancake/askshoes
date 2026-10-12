@@ -1,9 +1,15 @@
 import type { RefItemResponse } from 'argent-api';
-import { Table, TableLazyLoadEvent } from 'primeng/table';
+import type { TableLazyLoadEvent } from 'primeng/table';
 import { CommonModule } from '@angular/common';
 import { Component, effect, inject, input, signal, untracked, viewChild } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormControl,
+  FormGroup,
+  FormsModule,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ReferenceControllerService } from 'argent-api';
 import { applyServerErrors, FieldError, problemMessage } from 'argent-ui';
@@ -14,7 +20,7 @@ import { Dialog } from 'primeng/dialog';
 import { InputNumber } from 'primeng/inputnumber';
 import { InputText } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
-import { TableModule } from 'primeng/table';
+import { Table, TableModule } from 'primeng/table';
 import { Tag } from 'primeng/tag';
 import { Toast } from 'primeng/toast';
 import { ToggleSwitch } from 'primeng/toggleswitch';
@@ -66,7 +72,7 @@ export class RefCrudPage {
   readonly code = input.required<string>();
   /** Заголовок страницы; по умолчанию — сам {@link code}. */
   readonly title = input<string>();
-  protected readonly refTypes = toSignal(this.referenceApi.listTypes(), { initialValue: [] });
+  protected readonly refTypes = toSignal(this.referenceApi.listRefTypes(), { initialValue: [] });
   protected readonly items = signal<RefItemResponse[]>([]);
   protected readonly totalRecords = signal(0);
   protected readonly loading = signal(false);
@@ -109,21 +115,23 @@ export class RefCrudPage {
     const sort = sortField ? [`${sortField},${event.sortOrder === 1 ? 'asc' : 'desc'}`] : undefined;
 
     this.loading.set(true);
-    this.referenceApi.list(this.code(), { page, size: rows, sort }).subscribe({
-      next: (result) => {
-        this.items.set(result.content ?? []);
-        this.totalRecords.set(result.page?.totalElements ?? 0);
-        this.loading.set(false);
-      },
-      error: (error: unknown) => {
-        this.loading.set(false);
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Не удалось загрузить список',
-          detail: problemMessage(error, ''),
-        });
-      },
-    });
+    this.referenceApi
+      .listRefItems({ code: this.code(), pageable: { page, size: rows, sort } })
+      .subscribe({
+        next: (result) => {
+          this.items.set(result.content ?? []);
+          this.totalRecords.set(result.page?.totalElements ?? 0);
+          this.loading.set(false);
+        },
+        error: (error: unknown) => {
+          this.loading.set(false);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Не удалось загрузить список',
+            detail: problemMessage(error, ''),
+          });
+        },
+      });
   }
 
   /** Открывает диалог создания новой позиции — форма пустая. */
@@ -156,8 +164,12 @@ export class RefCrudPage {
     const request = this.form.getRawValue();
     const editing = this.editingItem();
     const result$ = editing
-      ? this.referenceApi.update(this.code(), editing.id!, request)
-      : this.referenceApi.create(this.code(), request);
+      ? this.referenceApi.updateRefItem({
+          code: this.code(),
+          itemId: editing.id!,
+          refItemRequest: request,
+        })
+      : this.referenceApi.createRefItem({ code: this.code(), refItemRequest: request });
 
     result$.subscribe({
       next: () => {
@@ -194,7 +206,7 @@ export class RefCrudPage {
   }
 
   private delete(item: RefItemResponse): void {
-    this.referenceApi._delete(this.code(), item.id!).subscribe({
+    this.referenceApi.deleteRefItem({ code: this.code(), itemId: item.id! }).subscribe({
       next: () => {
         this.reload();
         this.messageService.add({ severity: 'success', summary: 'Удалено' });

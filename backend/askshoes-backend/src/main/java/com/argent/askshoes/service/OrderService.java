@@ -1,10 +1,5 @@
 package com.argent.askshoes.service;
 
-import com.argent.kernel.error.ValidationErrorsException;
-import com.argent.kernel.sequence.NumberGenerator;
-import com.argent.kernel.status.Status;
-import com.argent.kernel.status.StatusRepository;
-import com.argent.kernel.status.StatusTypeRepository;
 import com.argent.askshoes.dto.order.*;
 import com.argent.askshoes.entity.client.Client;
 import com.argent.askshoes.entity.order.Order;
@@ -12,6 +7,11 @@ import com.argent.askshoes.entity.order.OrderItem;
 import com.argent.askshoes.entity.order.OrderItemDefect;
 import com.argent.askshoes.entity.order.OrderItemWork;
 import com.argent.askshoes.repository.OrderRepository;
+import com.argent.kernel.error.ValidationErrorsException;
+import com.argent.kernel.sequence.NumberGenerator;
+import com.argent.kernel.status.Status;
+import com.argent.kernel.status.StatusRepository;
+import com.argent.kernel.status.StatusTypeRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;

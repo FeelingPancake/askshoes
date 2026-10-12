@@ -9,8 +9,24 @@ Angular-клиент, **сгенерированный** из OpenAPI-специ
 2. Из `frontend/`: `npm run generate-api` — скачивает `/v3/api-docs` в `openapi.json` и
    перегенерирует всё содержимое `src/lib/`.
 
-Файлы `src/public-api.ts`, `ng-package.json`, `package.json`, `tsconfig.*.json` на верхнем уровне
-пакета — ручные (обвязка Angular-библиотеки), их генератор не трогает.
+Скрипты (`frontend/package.json`):
+
+- `fetch-openapi-spec` — `curl -sf`: при недоступном backend или ответе 4xx/5xx падает, и
+  цепочка обрывается до очистки — `src/lib` не останется пустой.
+- `codegen-api` — удаляет `src/lib` целиком (`fs.rmSync`: генератор сам старые файлы не
+  удаляет, и сервис удалённого контроллера иначе остался бы навсегда), генерирует из локального
+  `openapi.json`, прогоняет prettier. Backend не нужен — если спецификация уже свежая.
+- `generate-api` — `fetch-openapi-spec` + `codegen-api`.
+
+Флаг `useSingleRequestParameter=true`: параметры метода — одним объектом
+(`updateRefItem({ code, itemId, refItemRequest })`), перестановка параметров в Java не сломает
+вызов молча.
+
+Файлы `src/public-api.ts`, `ng-package.json`, `package.json`, `tsconfig.*.json`,
+`.openapi-generator-ignore` на верхнем уровне пакета — ручные, их генератор не трогает.
+`.openapi-generator-ignore` лежит вне `src/lib` (иначе очистка в `codegen-api` удалила бы
+его), передаётся через `--ignore-file-override`; пути в нём — относительно самого файла, отсюда
+префикс `src/lib/`.
 
 ## Использование
 

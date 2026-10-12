@@ -25,11 +25,21 @@ import { OpenApiHttpParams, QueryParamStyle } from '../query.params';
 import { LoginRequest } from '../model/login-request';
 // @ts-ignore
 import { LoginResponse } from '../model/login-response';
+// @ts-ignore
+import { RegisterRequest } from '../model/register-request';
 
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS } from '../variables';
 import { Configuration } from '../configuration';
 import { BaseService } from '../api.base.service';
+
+export interface LoginRequestParams {
+  loginRequest: LoginRequest;
+}
+
+export interface RegisterRequestParams {
+  registerRequest: RegisterRequest;
+}
 
 @Injectable({
   providedIn: 'root',
@@ -45,13 +55,13 @@ export class AuthControllerService extends BaseService {
 
   /**
    * @endpoint post /api/auth/login
-   * @param loginRequest
+   * @param requestParameters
    * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
    * @param reportProgress flag to report request and response progress.
    * @param options additional options
    */
   public login(
-    loginRequest: LoginRequest,
+    requestParameters: LoginRequestParams,
     observe?: 'body',
     reportProgress?: boolean,
     options?: {
@@ -61,7 +71,7 @@ export class AuthControllerService extends BaseService {
     },
   ): Observable<LoginResponse>;
   public login(
-    loginRequest: LoginRequest,
+    requestParameters: LoginRequestParams,
     observe?: 'response',
     reportProgress?: boolean,
     options?: {
@@ -71,7 +81,7 @@ export class AuthControllerService extends BaseService {
     },
   ): Observable<HttpResponse<LoginResponse>>;
   public login(
-    loginRequest: LoginRequest,
+    requestParameters: LoginRequestParams,
     observe?: 'events',
     reportProgress?: boolean,
     options?: {
@@ -81,7 +91,7 @@ export class AuthControllerService extends BaseService {
     },
   ): Observable<HttpEvent<LoginResponse>>;
   public login(
-    loginRequest: LoginRequest,
+    requestParameters: LoginRequestParams,
     observe: any = 'body',
     reportProgress: boolean = false,
     options?: {
@@ -90,6 +100,7 @@ export class AuthControllerService extends BaseService {
       transferCache?: boolean;
     },
   ): Observable<any> {
+    const loginRequest = requestParameters?.loginRequest;
     if (loginRequest === null || loginRequest === undefined) {
       throw new Error('Required parameter loginRequest was null or undefined when calling login.');
     }
@@ -130,6 +141,105 @@ export class AuthControllerService extends BaseService {
     return this.httpClient.request<LoginResponse>('post', `${basePath}${localVarPath}`, {
       context: localVarHttpContext,
       body: loginRequest,
+      responseType: <any>responseType_,
+      ...(withCredentials ? { withCredentials } : {}),
+      headers: localVarHeaders,
+      observe: observe,
+      ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+      reportProgress: reportProgress,
+    });
+  }
+
+  /**
+   * @endpoint post /api/auth/register
+   * @param requestParameters
+   * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+   * @param reportProgress flag to report request and response progress.
+   * @param options additional options
+   */
+  public register(
+    requestParameters: RegisterRequestParams,
+    observe?: 'body',
+    reportProgress?: boolean,
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
+  ): Observable<LoginResponse>;
+  public register(
+    requestParameters: RegisterRequestParams,
+    observe?: 'response',
+    reportProgress?: boolean,
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
+  ): Observable<HttpResponse<LoginResponse>>;
+  public register(
+    requestParameters: RegisterRequestParams,
+    observe?: 'events',
+    reportProgress?: boolean,
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
+  ): Observable<HttpEvent<LoginResponse>>;
+  public register(
+    requestParameters: RegisterRequestParams,
+    observe: any = 'body',
+    reportProgress: boolean = false,
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
+  ): Observable<any> {
+    const registerRequest = requestParameters?.registerRequest;
+    if (registerRequest === null || registerRequest === undefined) {
+      throw new Error(
+        'Required parameter registerRequest was null or undefined when calling register.',
+      );
+    }
+
+    let localVarHeaders = this.defaultHeaders;
+
+    const localVarHttpHeaderAcceptSelected: string | undefined =
+      options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept(['application/json']);
+    if (localVarHttpHeaderAcceptSelected !== undefined) {
+      localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+    }
+
+    const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+    const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+    // to determine the Content-Type header
+    const consumes: string[] = ['application/json'];
+    const httpContentTypeSelected: string | undefined =
+      this.configuration.selectHeaderContentType(consumes);
+    if (httpContentTypeSelected !== undefined) {
+      localVarHeaders = localVarHeaders.set('Content-Type', httpContentTypeSelected);
+    }
+
+    let responseType_: 'text' | 'json' | 'blob' = 'json';
+    if (localVarHttpHeaderAcceptSelected) {
+      if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+        responseType_ = 'text';
+      } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+        responseType_ = 'json';
+      } else {
+        responseType_ = 'blob';
+      }
+    }
+
+    let localVarPath = `/api/auth/register`;
+    const { basePath, withCredentials } = this.configuration;
+    return this.httpClient.request<LoginResponse>('post', `${basePath}${localVarPath}`, {
+      context: localVarHttpContext,
+      body: registerRequest,
       responseType: <any>responseType_,
       ...(withCredentials ? { withCredentials } : {}),
       headers: localVarHeaders,

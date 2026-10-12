@@ -6,7 +6,7 @@
  * <p>{@link com.argent.kernel.reference.RefImportService} — массовый импорт позиций многих
  * справочников одним файлом ({@code POST /api/refs/import}, XLSX: лист = справочник, JSON: ключ =
  * справочник). Upsert по {@code code}, всё или ничего: ошибки собираются по всему файлу и
- * возвращаются разом ({@link com.argent.kernel.error.ValidationErrorsException}). Типы
- * справочников импорт не создаёт — они живут в миграциях.
+ * возвращаются разом ({@link com.argent.kernel.error.ValidationErrorsException}). Типы справочников
+ * импорт не создаёт — они живут в миграциях.
  */
 package com.argent.kernel.reference;

@@ -24,12 +24,22 @@ import { OpenApiHttpParams, QueryParamStyle } from '../query.params';
 // @ts-ignore
 import { ExportRequest } from '../model/export-request';
 // @ts-ignore
-import { ImportFileRequest } from '../model/import-file-request';
+import { ImportRefItemsRequest } from '../model/import-ref-items-request';
 
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS } from '../variables';
 import { Configuration } from '../configuration';
 import { BaseService } from '../api.base.service';
+
+export interface ExportTableRequestParams {
+  format: string;
+  exportRequest: ExportRequest;
+}
+
+export interface ImportTableRequestParams {
+  format: string;
+  importRefItemsRequest?: ImportRefItemsRequest;
+}
 
 @Injectable({
   providedIn: 'root',
@@ -45,15 +55,13 @@ export class TransferControllerService extends BaseService {
 
   /**
    * @endpoint post /api/export/{format}
-   * @param format
-   * @param exportRequest
+   * @param requestParameters
    * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
    * @param reportProgress flag to report request and response progress.
    * @param options additional options
    */
-  public _export(
-    format: string,
-    exportRequest: ExportRequest,
+  public exportTable(
+    requestParameters: ExportTableRequestParams,
     observe?: 'body',
     reportProgress?: boolean,
     options?: {
@@ -62,9 +70,8 @@ export class TransferControllerService extends BaseService {
       transferCache?: boolean;
     },
   ): Observable<Blob>;
-  public _export(
-    format: string,
-    exportRequest: ExportRequest,
+  public exportTable(
+    requestParameters: ExportTableRequestParams,
     observe?: 'response',
     reportProgress?: boolean,
     options?: {
@@ -73,9 +80,8 @@ export class TransferControllerService extends BaseService {
       transferCache?: boolean;
     },
   ): Observable<HttpResponse<Blob>>;
-  public _export(
-    format: string,
-    exportRequest: ExportRequest,
+  public exportTable(
+    requestParameters: ExportTableRequestParams,
     observe?: 'events',
     reportProgress?: boolean,
     options?: {
@@ -84,9 +90,8 @@ export class TransferControllerService extends BaseService {
       transferCache?: boolean;
     },
   ): Observable<HttpEvent<Blob>>;
-  public _export(
-    format: string,
-    exportRequest: ExportRequest,
+  public exportTable(
+    requestParameters: ExportTableRequestParams,
     observe: any = 'body',
     reportProgress: boolean = false,
     options?: {
@@ -95,12 +100,14 @@ export class TransferControllerService extends BaseService {
       transferCache?: boolean;
     },
   ): Observable<any> {
+    const format = requestParameters?.format;
     if (format === null || format === undefined) {
-      throw new Error('Required parameter format was null or undefined when calling _export.');
+      throw new Error('Required parameter format was null or undefined when calling exportTable.');
     }
+    const exportRequest = requestParameters?.exportRequest;
     if (exportRequest === null || exportRequest === undefined) {
       throw new Error(
-        'Required parameter exportRequest was null or undefined when calling _export.',
+        'Required parameter exportRequest was null or undefined when calling exportTable.',
       );
     }
 
@@ -140,15 +147,13 @@ export class TransferControllerService extends BaseService {
 
   /**
    * @endpoint post /api/import/{format}
-   * @param format
-   * @param importFileRequest
+   * @param requestParameters
    * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
    * @param reportProgress flag to report request and response progress.
    * @param options additional options
    */
-  public importFile(
-    format: string,
-    importFileRequest?: ImportFileRequest,
+  public importTable(
+    requestParameters: ImportTableRequestParams,
     observe?: 'body',
     reportProgress?: boolean,
     options?: {
@@ -157,9 +162,8 @@ export class TransferControllerService extends BaseService {
       transferCache?: boolean;
     },
   ): Observable<Array<{ [key: string]: string }>>;
-  public importFile(
-    format: string,
-    importFileRequest?: ImportFileRequest,
+  public importTable(
+    requestParameters: ImportTableRequestParams,
     observe?: 'response',
     reportProgress?: boolean,
     options?: {
@@ -168,9 +172,8 @@ export class TransferControllerService extends BaseService {
       transferCache?: boolean;
     },
   ): Observable<HttpResponse<Array<{ [key: string]: string }>>>;
-  public importFile(
-    format: string,
-    importFileRequest?: ImportFileRequest,
+  public importTable(
+    requestParameters: ImportTableRequestParams,
     observe?: 'events',
     reportProgress?: boolean,
     options?: {
@@ -179,9 +182,8 @@ export class TransferControllerService extends BaseService {
       transferCache?: boolean;
     },
   ): Observable<HttpEvent<Array<{ [key: string]: string }>>>;
-  public importFile(
-    format: string,
-    importFileRequest?: ImportFileRequest,
+  public importTable(
+    requestParameters: ImportTableRequestParams,
     observe: any = 'body',
     reportProgress: boolean = false,
     options?: {
@@ -190,9 +192,11 @@ export class TransferControllerService extends BaseService {
       transferCache?: boolean;
     },
   ): Observable<any> {
+    const format = requestParameters?.format;
     if (format === null || format === undefined) {
-      throw new Error('Required parameter format was null or undefined when calling importFile.');
+      throw new Error('Required parameter format was null or undefined when calling importTable.');
     }
+    const importRefItemsRequest = requestParameters?.importRefItemsRequest;
 
     let localVarHeaders = this.defaultHeaders;
 
@@ -232,7 +236,7 @@ export class TransferControllerService extends BaseService {
       `${basePath}${localVarPath}`,
       {
         context: localVarHttpContext,
-        body: importFileRequest,
+        body: importRefItemsRequest,
         responseType: <any>responseType_,
         ...(withCredentials ? { withCredentials } : {}),
         headers: localVarHeaders,

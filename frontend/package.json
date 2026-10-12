@@ -2,7 +2,6 @@
   "name": "frontend",
   "version": "0.0.0",
   "scripts": {
-    "ng": "ng",
     "start": "ng serve askshoes-frontend",
     "build": "npm run build-libs && ng build askshoes-frontend",
     "watch": "ng build argent-ui --watch --configuration development",
@@ -10,8 +9,9 @@
     "lint": "ng lint argent-ui && ng lint askshoes-frontend",
     "lint:fix": "ng lint argent-ui --fix && ng lint askshoes-frontend --fix",
     "format": "prettier --write \"projects/**/*.{ts,html,scss}\"",
-    "fetch-openapi-spec": "curl -s http://127.0.0.1:8080/v3/api-docs -o openapi.json",
-    "generate-api": "npm run fetch-openapi-spec && openapi-generator-cli generate -i openapi.json -g typescript-angular -o projects/argent-api/src/lib --additional-properties=ngVersion=21.2.0,providedInRoot=true,npmName=argent-api,fileNaming=kebab-case && prettier --write \"projects/argent-api/src/**/*.ts\"",
+    "fetch-openapi-spec": "curl -sf http://127.0.0.1:8080/v3/api-docs -o openapi.json",
+    "codegen-api": "node -e \"require('fs').rmSync('projects/argent-api/src/lib', { recursive: true, force: true })\" && openapi-generator-cli generate -i openapi.json -g typescript-angular -o projects/argent-api/src/lib --ignore-file-override=projects/argent-api/.openapi-generator-ignore --additional-properties=ngVersion=21.2.0,providedInRoot=true,npmName=argent-api,fileNaming=kebab-case,useSingleRequestParameter=true && prettier --write \"projects/argent-api/src/**/*.ts\"",
+    "generate-api": "npm run fetch-openapi-spec && npm run codegen-api",
     "build-libs": "ng build argent-api && ng build argent-ui"
   },
   "private": true,

@@ -7,10 +7,14 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { PageMetadata } from './page-metadata';
-import { User } from './user';
 
-export interface PagedModelUser {
-  content?: Array<User>;
-  page?: PageMetadata;
+export interface ClientResponse {
+  id?: string;
+  fullName?: string;
+  phone?: string;
+  address?: string;
+  login?: string;
+  sourceId?: string;
+  statusId?: string;
+  contactMethodIds?: Array<string>;
 }

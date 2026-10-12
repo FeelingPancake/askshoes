@@ -3,13 +3,13 @@
  *
  * <p>Гибридная схема: JWT (RS256, {@link org.springframework.security.oauth2.jwt.JwtEncoder}) даёт
  * stateless-проверку подписи/срока действия без похода в БД, а строка в {@code krn_user_session}
- * ({@link com.argent.kernel.auth.UserSession}) даёт возможность мгновенно отозвать сессию
- * ({@code revoked}) — то, что чистый JWT сам по себе не умеет.
+ * ({@link com.argent.kernel.auth.UserSession}) даёт возможность мгновенно отозвать сессию ({@code
+ * revoked}) — то, что чистый JWT сам по себе не умеет.
  *
  * <p>{@link com.argent.kernel.auth.AuthController} — точки входа {@code POST /api/auth/login} и
  * {@code POST /api/auth/register}. Токен в обоих случаях выдаёт {@link
- * com.argent.kernel.auth.TokenService}. Регистрация выключена по умолчанию и включается
- * настройками {@link com.argent.kernel.auth.RegistrationProperties} ({@code
- * argent.auth.registration.*}); seed-миграции первого пользователя нет — его создаёт регистрация.
+ * com.argent.kernel.auth.TokenService}. Регистрация выключена по умолчанию и включается настройками
+ * {@link com.argent.kernel.auth.RegistrationProperties} ({@code argent.auth.registration.*});
+ * seed-миграции первого пользователя нет — его создаёт регистрация.
  */
 package com.argent.kernel.auth;

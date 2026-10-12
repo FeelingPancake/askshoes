@@ -8,6 +8,6 @@
  * Do not edit the class manually.
  */
 
-export interface ImportFileRequest {
+export interface ImportRefItemsRequest {
   file: Blob;
 }

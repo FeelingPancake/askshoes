@@ -1,12 +1,12 @@
 package com.argent.askshoes.service;
 
-import com.argent.kernel.error.ValidationErrorsException;
-import com.argent.kernel.reference.RefItemRepository;
-import com.argent.kernel.reference.RefTypeRepository;
 import com.argent.askshoes.dto.client.ClientRequest;
 import com.argent.askshoes.dto.order.OrderItemRequest;
 import com.argent.askshoes.dto.order.OrderRequest;
 import com.argent.askshoes.entity.order.Order;
+import com.argent.kernel.error.ValidationErrorsException;
+import com.argent.kernel.reference.RefItemRepository;
+import com.argent.kernel.reference.RefTypeRepository;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;

@@ -22,21 +22,41 @@ import { Observable } from 'rxjs';
 import { OpenApiHttpParams, QueryParamStyle } from '../query.params';
 
 // @ts-ignore
+import { OrderRequest } from '../model/order-request';
+// @ts-ignore
+import { OrderResponse } from '../model/order-response';
+// @ts-ignore
 import { Pageable } from '../model/pageable';
 // @ts-ignore
-import { PagedModelUser } from '../model/paged-model-user';
-// @ts-ignore
-import { User } from '../model/user';
+import { PagedModelOrderListItem } from '../model/paged-model-order-list-item';
 
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS } from '../variables';
 import { Configuration } from '../configuration';
 import { BaseService } from '../api.base.service';
 
+export interface CreateOrderRequestParams {
+  orderRequest: OrderRequest;
+}
+
+export interface GetOrderRequestParams {
+  id: string;
+}
+
+export interface ListOrdersRequestParams {
+  pageable: Pageable;
+  search?: string;
+}
+
+export interface UpdateOrderRequestParams {
+  id: string;
+  orderRequest: OrderRequest;
+}
+
 @Injectable({
   providedIn: 'root',
 })
-export class TestRestControllerService extends BaseService {
+export class OrderControllerService extends BaseService {
   constructor(
     protected httpClient: HttpClient,
     @Optional() @Inject(BASE_PATH) basePath: string | string[],
@@ -46,14 +66,14 @@ export class TestRestControllerService extends BaseService {
   }
 
   /**
-   * @endpoint get /api/test/number/{code}
-   * @param code
+   * @endpoint post /api/orders
+   * @param requestParameters
    * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
    * @param reportProgress flag to report request and response progress.
    * @param options additional options
    */
-  public generateNumber(
-    code: string,
+  public createOrder(
+    requestParameters: CreateOrderRequestParams,
     observe?: 'body',
     reportProgress?: boolean,
     options?: {
@@ -61,9 +81,9 @@ export class TestRestControllerService extends BaseService {
       context?: HttpContext;
       transferCache?: boolean;
     },
-  ): Observable<string>;
-  public generateNumber(
-    code: string,
+  ): Observable<OrderResponse>;
+  public createOrder(
+    requestParameters: CreateOrderRequestParams,
     observe?: 'response',
     reportProgress?: boolean,
     options?: {
@@ -71,9 +91,9 @@ export class TestRestControllerService extends BaseService {
       context?: HttpContext;
       transferCache?: boolean;
     },
-  ): Observable<HttpResponse<string>>;
-  public generateNumber(
-    code: string,
+  ): Observable<HttpResponse<OrderResponse>>;
+  public createOrder(
+    requestParameters: CreateOrderRequestParams,
     observe?: 'events',
     reportProgress?: boolean,
     options?: {
@@ -81,9 +101,9 @@ export class TestRestControllerService extends BaseService {
       context?: HttpContext;
       transferCache?: boolean;
     },
-  ): Observable<HttpEvent<string>>;
-  public generateNumber(
-    code: string,
+  ): Observable<HttpEvent<OrderResponse>>;
+  public createOrder(
+    requestParameters: CreateOrderRequestParams,
     observe: any = 'body',
     reportProgress: boolean = false,
     options?: {
@@ -92,8 +112,108 @@ export class TestRestControllerService extends BaseService {
       transferCache?: boolean;
     },
   ): Observable<any> {
-    if (code === null || code === undefined) {
-      throw new Error('Required parameter code was null or undefined when calling generateNumber.');
+    const orderRequest = requestParameters?.orderRequest;
+    if (orderRequest === null || orderRequest === undefined) {
+      throw new Error(
+        'Required parameter orderRequest was null or undefined when calling createOrder.',
+      );
+    }
+
+    let localVarHeaders = this.defaultHeaders;
+
+    const localVarHttpHeaderAcceptSelected: string | undefined =
+      options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept(['application/json']);
+    if (localVarHttpHeaderAcceptSelected !== undefined) {
+      localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+    }
+
+    const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+    const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+    // to determine the Content-Type header
+    const consumes: string[] = ['application/json'];
+    const httpContentTypeSelected: string | undefined =
+      this.configuration.selectHeaderContentType(consumes);
+    if (httpContentTypeSelected !== undefined) {
+      localVarHeaders = localVarHeaders.set('Content-Type', httpContentTypeSelected);
+    }
+
+    let responseType_: 'text' | 'json' | 'blob' = 'json';
+    if (localVarHttpHeaderAcceptSelected) {
+      if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+        responseType_ = 'text';
+      } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+        responseType_ = 'json';
+      } else {
+        responseType_ = 'blob';
+      }
+    }
+
+    let localVarPath = `/api/orders`;
+    const { basePath, withCredentials } = this.configuration;
+    return this.httpClient.request<OrderResponse>('post', `${basePath}${localVarPath}`, {
+      context: localVarHttpContext,
+      body: orderRequest,
+      responseType: <any>responseType_,
+      ...(withCredentials ? { withCredentials } : {}),
+      headers: localVarHeaders,
+      observe: observe,
+      ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+      reportProgress: reportProgress,
+    });
+  }
+
+  /**
+   * @endpoint get /api/orders/{id}
+   * @param requestParameters
+   * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+   * @param reportProgress flag to report request and response progress.
+   * @param options additional options
+   */
+  public getOrder(
+    requestParameters: GetOrderRequestParams,
+    observe?: 'body',
+    reportProgress?: boolean,
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
+  ): Observable<OrderResponse>;
+  public getOrder(
+    requestParameters: GetOrderRequestParams,
+    observe?: 'response',
+    reportProgress?: boolean,
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
+  ): Observable<HttpResponse<OrderResponse>>;
+  public getOrder(
+    requestParameters: GetOrderRequestParams,
+    observe?: 'events',
+    reportProgress?: boolean,
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
+  ): Observable<HttpEvent<OrderResponse>>;
+  public getOrder(
+    requestParameters: GetOrderRequestParams,
+    observe: any = 'body',
+    reportProgress: boolean = false,
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
+  ): Observable<any> {
+    const id = requestParameters?.id;
+    if (id === null || id === undefined) {
+      throw new Error('Required parameter id was null or undefined when calling getOrder.');
     }
 
     let localVarHeaders = this.defaultHeaders;
@@ -119,9 +239,9 @@ export class TestRestControllerService extends BaseService {
       }
     }
 
-    let localVarPath = `/api/test/number/${this.configuration.encodeParam({ name: 'code', value: code, in: 'path', style: 'simple', explode: false, dataType: 'string', dataFormat: undefined })}`;
+    let localVarPath = `/api/orders/${this.configuration.encodeParam({ name: 'id', value: id, in: 'path', style: 'simple', explode: false, dataType: 'string', dataFormat: 'uuid' })}`;
     const { basePath, withCredentials } = this.configuration;
-    return this.httpClient.request<string>('get', `${basePath}${localVarPath}`, {
+    return this.httpClient.request<OrderResponse>('get', `${basePath}${localVarPath}`, {
       context: localVarHttpContext,
       responseType: <any>responseType_,
       ...(withCredentials ? { withCredentials } : {}),
@@ -133,12 +253,14 @@ export class TestRestControllerService extends BaseService {
   }
 
   /**
-   * @endpoint get /api/test/user
+   * @endpoint get /api/orders
+   * @param requestParameters
    * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
    * @param reportProgress flag to report request and response progress.
    * @param options additional options
    */
-  public getMethodName(
+  public listOrders(
+    requestParameters: ListOrdersRequestParams,
     observe?: 'body',
     reportProgress?: boolean,
     options?: {
@@ -146,8 +268,9 @@ export class TestRestControllerService extends BaseService {
       context?: HttpContext;
       transferCache?: boolean;
     },
-  ): Observable<User>;
-  public getMethodName(
+  ): Observable<PagedModelOrderListItem>;
+  public listOrders(
+    requestParameters: ListOrdersRequestParams,
     observe?: 'response',
     reportProgress?: boolean,
     options?: {
@@ -155,8 +278,9 @@ export class TestRestControllerService extends BaseService {
       context?: HttpContext;
       transferCache?: boolean;
     },
-  ): Observable<HttpResponse<User>>;
-  public getMethodName(
+  ): Observable<HttpResponse<PagedModelOrderListItem>>;
+  public listOrders(
+    requestParameters: ListOrdersRequestParams,
     observe?: 'events',
     reportProgress?: boolean,
     options?: {
@@ -164,8 +288,9 @@ export class TestRestControllerService extends BaseService {
       context?: HttpContext;
       transferCache?: boolean;
     },
-  ): Observable<HttpEvent<User>>;
-  public getMethodName(
+  ): Observable<HttpEvent<PagedModelOrderListItem>>;
+  public listOrders(
+    requestParameters: ListOrdersRequestParams,
     observe: any = 'body',
     reportProgress: boolean = false,
     options?: {
@@ -174,104 +299,18 @@ export class TestRestControllerService extends BaseService {
       transferCache?: boolean;
     },
   ): Observable<any> {
-    let localVarHeaders = this.defaultHeaders;
-
-    const localVarHttpHeaderAcceptSelected: string | undefined =
-      options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept(['application/json']);
-    if (localVarHttpHeaderAcceptSelected !== undefined) {
-      localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
-    }
-
-    const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
-
-    const localVarTransferCache: boolean = options?.transferCache ?? true;
-
-    let responseType_: 'text' | 'json' | 'blob' = 'json';
-    if (localVarHttpHeaderAcceptSelected) {
-      if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
-        responseType_ = 'text';
-      } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
-        responseType_ = 'json';
-      } else {
-        responseType_ = 'blob';
-      }
-    }
-
-    let localVarPath = `/api/test/user`;
-    const { basePath, withCredentials } = this.configuration;
-    return this.httpClient.request<User>('get', `${basePath}${localVarPath}`, {
-      context: localVarHttpContext,
-      responseType: <any>responseType_,
-      ...(withCredentials ? { withCredentials } : {}),
-      headers: localVarHeaders,
-      observe: observe,
-      ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
-      reportProgress: reportProgress,
-    });
-  }
-
-  /**
-   * @endpoint get /api/test/users
-   * @param pageable
-   * @param usernameContains
-   * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
-   * @param reportProgress flag to report request and response progress.
-   * @param options additional options
-   */
-  public listUsers(
-    pageable: Pageable,
-    usernameContains?: string,
-    observe?: 'body',
-    reportProgress?: boolean,
-    options?: {
-      httpHeaderAccept?: 'application/json';
-      context?: HttpContext;
-      transferCache?: boolean;
-    },
-  ): Observable<PagedModelUser>;
-  public listUsers(
-    pageable: Pageable,
-    usernameContains?: string,
-    observe?: 'response',
-    reportProgress?: boolean,
-    options?: {
-      httpHeaderAccept?: 'application/json';
-      context?: HttpContext;
-      transferCache?: boolean;
-    },
-  ): Observable<HttpResponse<PagedModelUser>>;
-  public listUsers(
-    pageable: Pageable,
-    usernameContains?: string,
-    observe?: 'events',
-    reportProgress?: boolean,
-    options?: {
-      httpHeaderAccept?: 'application/json';
-      context?: HttpContext;
-      transferCache?: boolean;
-    },
-  ): Observable<HttpEvent<PagedModelUser>>;
-  public listUsers(
-    pageable: Pageable,
-    usernameContains?: string,
-    observe: any = 'body',
-    reportProgress: boolean = false,
-    options?: {
-      httpHeaderAccept?: 'application/json';
-      context?: HttpContext;
-      transferCache?: boolean;
-    },
-  ): Observable<any> {
+    const pageable = requestParameters?.pageable;
     if (pageable === null || pageable === undefined) {
-      throw new Error('Required parameter pageable was null or undefined when calling listUsers.');
+      throw new Error('Required parameter pageable was null or undefined when calling listOrders.');
     }
+    const search = requestParameters?.search;
 
     let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
     localVarQueryParameters = this.addToHttpParams(
       localVarQueryParameters,
-      'usernameContains',
-      <any>usernameContains,
+      'search',
+      <any>search,
       QueryParamStyle.Form,
       true,
     );
@@ -307,9 +346,9 @@ export class TestRestControllerService extends BaseService {
       }
     }
 
-    let localVarPath = `/api/test/users`;
+    let localVarPath = `/api/orders`;
     const { basePath, withCredentials } = this.configuration;
-    return this.httpClient.request<PagedModelUser>('get', `${basePath}${localVarPath}`, {
+    return this.httpClient.request<PagedModelOrderListItem>('get', `${basePath}${localVarPath}`, {
       context: localVarHttpContext,
       params: localVarQueryParameters.toHttpParams(),
       responseType: <any>responseType_,
@@ -322,12 +361,14 @@ export class TestRestControllerService extends BaseService {
   }
 
   /**
-   * @endpoint get /api/test/register-user
+   * @endpoint put /api/orders/{id}
+   * @param requestParameters
    * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
    * @param reportProgress flag to report request and response progress.
    * @param options additional options
    */
-  public registerTestUser(
+  public updateOrder(
+    requestParameters: UpdateOrderRequestParams,
     observe?: 'body',
     reportProgress?: boolean,
     options?: {
@@ -335,8 +376,9 @@ export class TestRestControllerService extends BaseService {
       context?: HttpContext;
       transferCache?: boolean;
     },
-  ): Observable<User>;
-  public registerTestUser(
+  ): Observable<OrderResponse>;
+  public updateOrder(
+    requestParameters: UpdateOrderRequestParams,
     observe?: 'response',
     reportProgress?: boolean,
     options?: {
@@ -344,8 +386,9 @@ export class TestRestControllerService extends BaseService {
       context?: HttpContext;
       transferCache?: boolean;
     },
-  ): Observable<HttpResponse<User>>;
-  public registerTestUser(
+  ): Observable<HttpResponse<OrderResponse>>;
+  public updateOrder(
+    requestParameters: UpdateOrderRequestParams,
     observe?: 'events',
     reportProgress?: boolean,
     options?: {
@@ -353,8 +396,9 @@ export class TestRestControllerService extends BaseService {
       context?: HttpContext;
       transferCache?: boolean;
     },
-  ): Observable<HttpEvent<User>>;
-  public registerTestUser(
+  ): Observable<HttpEvent<OrderResponse>>;
+  public updateOrder(
+    requestParameters: UpdateOrderRequestParams,
     observe: any = 'body',
     reportProgress: boolean = false,
     options?: {
@@ -363,6 +407,17 @@ export class TestRestControllerService extends BaseService {
       transferCache?: boolean;
     },
   ): Observable<any> {
+    const id = requestParameters?.id;
+    if (id === null || id === undefined) {
+      throw new Error('Required parameter id was null or undefined when calling updateOrder.');
+    }
+    const orderRequest = requestParameters?.orderRequest;
+    if (orderRequest === null || orderRequest === undefined) {
+      throw new Error(
+        'Required parameter orderRequest was null or undefined when calling updateOrder.',
+      );
+    }
+
     let localVarHeaders = this.defaultHeaders;
 
     const localVarHttpHeaderAcceptSelected: string | undefined =
@@ -375,83 +430,13 @@ export class TestRestControllerService extends BaseService {
 
     const localVarTransferCache: boolean = options?.transferCache ?? true;
 
-    let responseType_: 'text' | 'json' | 'blob' = 'json';
-    if (localVarHttpHeaderAcceptSelected) {
-      if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
-        responseType_ = 'text';
-      } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
-        responseType_ = 'json';
-      } else {
-        responseType_ = 'blob';
-      }
+    // to determine the Content-Type header
+    const consumes: string[] = ['application/json'];
+    const httpContentTypeSelected: string | undefined =
+      this.configuration.selectHeaderContentType(consumes);
+    if (httpContentTypeSelected !== undefined) {
+      localVarHeaders = localVarHeaders.set('Content-Type', httpContentTypeSelected);
     }
-
-    let localVarPath = `/api/test/register-user`;
-    const { basePath, withCredentials } = this.configuration;
-    return this.httpClient.request<User>('get', `${basePath}${localVarPath}`, {
-      context: localVarHttpContext,
-      responseType: <any>responseType_,
-      ...(withCredentials ? { withCredentials } : {}),
-      headers: localVarHeaders,
-      observe: observe,
-      ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
-      reportProgress: reportProgress,
-    });
-  }
-
-  /**
-   * @endpoint get /api/test/whoami
-   * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
-   * @param reportProgress flag to report request and response progress.
-   * @param options additional options
-   */
-  public whoami(
-    observe?: 'body',
-    reportProgress?: boolean,
-    options?: {
-      httpHeaderAccept?: 'application/json';
-      context?: HttpContext;
-      transferCache?: boolean;
-    },
-  ): Observable<Array<string>>;
-  public whoami(
-    observe?: 'response',
-    reportProgress?: boolean,
-    options?: {
-      httpHeaderAccept?: 'application/json';
-      context?: HttpContext;
-      transferCache?: boolean;
-    },
-  ): Observable<HttpResponse<Array<string>>>;
-  public whoami(
-    observe?: 'events',
-    reportProgress?: boolean,
-    options?: {
-      httpHeaderAccept?: 'application/json';
-      context?: HttpContext;
-      transferCache?: boolean;
-    },
-  ): Observable<HttpEvent<Array<string>>>;
-  public whoami(
-    observe: any = 'body',
-    reportProgress: boolean = false,
-    options?: {
-      httpHeaderAccept?: 'application/json';
-      context?: HttpContext;
-      transferCache?: boolean;
-    },
-  ): Observable<any> {
-    let localVarHeaders = this.defaultHeaders;
-
-    const localVarHttpHeaderAcceptSelected: string | undefined =
-      options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept(['application/json']);
-    if (localVarHttpHeaderAcceptSelected !== undefined) {
-      localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
-    }
-
-    const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
-
-    const localVarTransferCache: boolean = options?.transferCache ?? true;
 
     let responseType_: 'text' | 'json' | 'blob' = 'json';
     if (localVarHttpHeaderAcceptSelected) {
@@ -464,10 +449,11 @@ export class TestRestControllerService extends BaseService {
       }
     }
 
-    let localVarPath = `/api/test/whoami`;
+    let localVarPath = `/api/orders/${this.configuration.encodeParam({ name: 'id', value: id, in: 'path', style: 'simple', explode: false, dataType: 'string', dataFormat: 'uuid' })}`;
     const { basePath, withCredentials } = this.configuration;
-    return this.httpClient.request<Array<string>>('get', `${basePath}${localVarPath}`, {
+    return this.httpClient.request<OrderResponse>('put', `${basePath}${localVarPath}`, {
       context: localVarHttpContext,
+      body: orderRequest,
       responseType: <any>responseType_,
       ...(withCredentials ? { withCredentials } : {}),
       headers: localVarHeaders,

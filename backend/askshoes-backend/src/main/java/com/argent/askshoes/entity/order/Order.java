@@ -1,8 +1,8 @@
 package com.argent.askshoes.entity.order;
 
-import com.argent.kernel.status.Status;
 import com.argent.askshoes.entity.client.Client;
 import com.argent.askshoes.service.OrderService;
+import com.argent.kernel.status.Status;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;

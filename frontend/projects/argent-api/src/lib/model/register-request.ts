@@ -8,9 +8,8 @@
  * Do not edit the class manually.
  */
 
-export interface User {
-  id?: string;
-  username?: string;
-  displayName?: string;
-  createdAt?: string;
+export interface RegisterRequest {
+  username: string;
+  displayName: string;
+  password: string;
 }

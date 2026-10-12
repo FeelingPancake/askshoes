@@ -1,12 +1,12 @@
 package com.argent.askshoes.service;
 
-import com.argent.kernel.error.ValidationErrorsException;
 import com.argent.askshoes.dto.client.ClientRequest;
 import com.argent.askshoes.dto.client.ClientResponse;
 import com.argent.askshoes.entity.client.Client;
 import com.argent.askshoes.entity.client.ClientContactMethod;
 import com.argent.askshoes.repository.ClientRepository;
 import com.argent.askshoes.utils.PhoneUtils;
+import com.argent.kernel.error.ValidationErrorsException;
 import jakarta.persistence.EntityNotFoundException;
 import java.time.Instant;
 import java.util.LinkedHashSet;
