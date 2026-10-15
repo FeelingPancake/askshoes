@@ -1,0 +1,48 @@
+<form [formGroup]="form" (ngSubmit)="submit()">
+  <div class="register-form">
+    <div class="register-form__field">
+      <label for="username">Логин</label>
+      <input
+        pInputText
+        id="username"
+        type="text"
+        formControlName="username"
+        autocomplete="username"
+        [fluid]="true"
+      />
+      <argent-field-error [control]="form.controls.username" />
+    </div>
+
+    <div class="register-form__field">
+      <label for="displayName">Отображаемое имя</label>
+      <input
+        pInputText
+        id="displayName"
+        type="text"
+        formControlName="displayName"
+        autocomplete="name"
+        [fluid]="true"
+      />
+      <argent-field-error [control]="form.controls.displayName" />
+    </div>
+
+    <div class="register-form__field">
+      <label for="password">Пароль</label>
+      <p-password
+        inputId="password"
+        formControlName="password"
+        autocomplete="new-password"
+        [toggleMask]="true"
+        [feedback]="false"
+        [fluid]="true"
+      />
+      <argent-field-error [control]="form.controls.password" />
+    </div>
+
+    @if (errorMessage()) {
+      <p-message severity="error">{{ errorMessage() }}</p-message>
+    }
+
+    <p-button type="submit" label="Зарегистрироваться" [loading]="isSubmitting()" [fluid]="true" />
+  </div>
+</form>

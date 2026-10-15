@@ -1,0 +1,30 @@
+<argent-auth-layout>
+  <!-- Плакат: AuthLayout раскладывает только прямых детей с argent-auth-aside. -->
+  <span argent-auth-aside class="auth-page__label argent-mono">
+    {{ mode() === 'login' ? 'Вход' : 'Регистрация' }}
+  </span>
+  <div argent-auth-aside><ng-content select="[argent-auth-logo]" /></div>
+  <p argent-auth-aside class="auth-page__caption">{{ description() }}</p>
+
+  @if (mode() === 'login') {
+    <header class="auth-page__heading">
+      <h1 class="argent-page-title">Вход</h1>
+    </header>
+    <argent-login-form />
+    @if (allowRegistration()) {
+      <p class="auth-page__switch">
+        Нет учётной записи?
+        <p-button [link]="true" label="Зарегистрироваться" (onClick)="mode.set('register')" />
+      </p>
+    }
+  } @else {
+    <header class="auth-page__heading">
+      <h1 class="argent-page-title">Регистрация</h1>
+    </header>
+    <argent-register-form />
+    <p class="auth-page__switch">
+      Уже есть учётная запись?
+      <p-button [link]="true" label="Войти" (onClick)="mode.set('login')" />
+    </p>
+  }
+</argent-auth-layout>

@@ -6,7 +6,7 @@ const STORAGE_KEY = 'argent.auth.token';
  * Signal-based хранилище JWT-токена сессии, с персистентностью в `localStorage`.
  *
  * `providedIn: 'root'` — единственный экземпляр на всё приложение, доступен через DI без
- * дополнительной регистрации в `app.config.ts` (в отличие от {@link ARGENT_API_BASE_URL} или
+ * дополнительной регистрации в `app.config.ts` (в отличие от `provideApi(...)` или
  * `authInterceptor`, которые приложение обязано подключить явно).
  *
  * Мутировать токен снаружи нельзя — {@link token} доступен только на чтение
