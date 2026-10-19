@@ -1,4 +1,5 @@
 export { authInterceptor } from './lib/auth-interceptor';
+export { AppShell } from './lib/components/app-shell/app-shell';
 export { AuthLayout } from './lib/components/auth-layout/auth-layout';
 export { AuthPage } from './lib/components/auth-page/auth-page';
 export { FieldError } from './lib/components/field-error/field-error';
@@ -9,6 +10,8 @@ export { ShellLayout } from './lib/components/shell-layout/shell-layout';
 export { errorInterceptor } from './lib/errors/error-interceptor';
 export type { ProblemDetail } from './lib/errors/problem-detail';
 export { applyServerErrors, problemMessage, toProblemDetail } from './lib/errors/problem-detail';
+export type { ArgentConfig } from './lib/provide-argent';
+export { provideArgent } from './lib/provide-argent';
 export { AuthApiService } from './lib/services/auth-api';
 /*
  * Public API Surface of argent-ui

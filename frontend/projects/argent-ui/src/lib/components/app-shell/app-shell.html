@@ -1,0 +1,26 @@
+@if (tokenStore.isAuthenticated()) {
+  <argent-shell-layout [nav]="nav()">
+    <ng-container ngProjectAs="[argent-shell-brand]">
+      <ng-content select="[argent-shell-brand]" />
+    </ng-container>
+
+    <div argent-shell-user>
+      <p-button
+        icon="pi pi-user"
+        [text]="true"
+        severity="secondary"
+        ariaLabel="Меню пользователя"
+        (onClick)="userMenuRef.toggle($event)"
+      />
+      <p-menu #userMenuRef [model]="userMenu" [popup]="true" appendTo="body" />
+    </div>
+
+    <router-outlet />
+  </argent-shell-layout>
+} @else {
+  <argent-auth-page [description]="description()" [allowRegistration]="allowRegistration()">
+    <ng-container ngProjectAs="[argent-auth-logo]">
+      <ng-content select="[argent-auth-logo]" />
+    </ng-container>
+  </argent-auth-page>
+}

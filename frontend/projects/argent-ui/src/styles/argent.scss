@@ -1,12 +1,20 @@
-// Глобальные стили ядра argent-ui: переменные шрифтов, типографическая
-// шкала и утилитарные классы. Ядро не подключает файлы конкретных
-// шрифтов (.woff2) — это забота приложения (см. angular.json →
-// askshoes-frontend → build.options.styles); здесь заданы только имена
-// font-family с системным fallback и производные CSS-переменные/классы.
+// Глобальные стили ядра argent-ui: шрифты, иконки, переменные шрифтов,
+// типографическая шкала и утилитарные классы.
 //
-// Подключение из приложения: @use 'argent-ui/styles/argent';
+// Подключение из приложения — одна строка в styles.scss:
+//   @use 'argent-ui/styles/argent';
 // (алиас 'argent-ui' резолвится в dist/argent-ui через
-// stylePreprocessorOptions.includePaths так же, как tsconfig 'paths').
+// stylePreprocessorOptions.includePaths: ["dist"] так же, как tsconfig 'paths').
+// Фирменные шрифты приложения (например, Archivo Narrow у AskShoes)
+// подключаются в его styles.scss.
+
+// Файлы шрифтов ядра (@fontsource) и иконки PrimeNG. Обычный CSS @import:
+// Sass выносит его в начало результата, а сборщик Angular подтягивает CSS
+// пакета из node_modules вместе с .woff2.
+@import '@fontsource-variable/ibm-plex-sans/index.css';
+@import '@fontsource/ibm-plex-mono/400.css';
+@import '@fontsource/ibm-plex-mono/500.css';
+@import 'primeicons/primeicons.css';
 
 :root {
   // Имена семейств — точные значения из CSS пакетов @fontsource

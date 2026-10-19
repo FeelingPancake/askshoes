@@ -4,8 +4,12 @@
   "peerDependencies": {
     "@angular/common": "^21.2.0",
     "@angular/core": "^21.2.0",
+    "@angular/router": "^21.2.0",
+    "@fontsource-variable/ibm-plex-sans": "^5.3.0",
+    "@fontsource/ibm-plex-mono": "^5.3.0",
     "@primeuix/themes": "^2.0.3",
     "argent-api": "*",
+    "primeicons": "^7.0.0",
     "primeng": "^21.1.3"
   },
   "dependencies": {

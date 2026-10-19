@@ -1,24 +1,6 @@
-@if (tokenStore.isAuthenticated()) {
-  <argent-shell-layout [nav]="nav">
-    <span argent-shell-brand class="wordmark">Ask<span class="wordmark__accent">Shoes</span></span>
-
-    <div argent-shell-user>
-      <p-button
-        icon="pi pi-user"
-        [text]="true"
-        severity="secondary"
-        ariaLabel="Меню пользователя"
-        (onClick)="userMenuRef.toggle($event)"
-      />
-      <p-menu #userMenuRef [model]="userMenu" [popup]="true" appendTo="body" />
-    </div>
-
-    <router-outlet />
-  </argent-shell-layout>
-} @else {
-  <argent-auth-page [description]="description">
-    <span argent-auth-logo class="wordmark wordmark--poster">
-      Ask<br /><span class="wordmark__accent">Shoes</span>
-    </span>
-  </argent-auth-page>
-}
+<argent-app-shell [nav]="nav" [description]="description">
+  <span argent-shell-brand class="wordmark">Ask<span class="wordmark__accent">Shoes</span></span>
+  <span argent-auth-logo class="wordmark wordmark--poster">
+    Ask<br /><span class="wordmark__accent">Shoes</span>
+  </span>
+</argent-app-shell>

@@ -1,3 +1,3 @@
-/* You can add global styles to this file, and also import other style files */
 @use 'argent-ui/styles/argent';
-@import 'primeicons/primeicons.css';
+// Фирменный шрифт словесного знака AskShoes; шрифты ядра подключает argent.scss.
+@import '@fontsource/archivo-narrow/700.css';

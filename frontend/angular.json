@@ -68,13 +68,7 @@
                 "input": "projects/askshoes-frontend/public"
               }
             ],
-            "styles": [
-              "@fontsource-variable/ibm-plex-sans/index.css",
-              "@fontsource/ibm-plex-mono/400.css",
-              "@fontsource/ibm-plex-mono/500.css",
-              "@fontsource/archivo-narrow/700.css",
-              "projects/askshoes-frontend/src/styles.scss"
-            ],
+            "styles": ["projects/askshoes-frontend/src/styles.scss"],
             "stylePreprocessorOptions": {
               "includePaths": ["dist"]
             }
